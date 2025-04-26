@@ -41,7 +41,7 @@ export default function WelcomePage() {
 
           <div className="text-center">
             <Link
-              href="/login"
+              href="/home"
               className="text-sm text-forest-400 hover:text-forest-500 dark:text-cream-400 dark:hover:text-cream-300"
             >
               Already have an account? Log in
