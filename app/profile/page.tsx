@@ -24,9 +24,9 @@ const mockProfile = {
 export default function ProfilePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-background border-b p-4">
+      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center justify-between">
-          <h1 className="font-serif text-2xl font-bold text-forest-500 dark:text-cream-300">Profile</h1>
+          <h1 className="font-serif text-2xl font-bold text-forest-500">Profile</h1>
           <Button variant="ghost" size="icon" asChild>
             <Link href="/settings">
               <Settings className="h-5 w-5" />
@@ -58,7 +58,7 @@ export default function ProfilePage() {
 
             <p className="text-sm text-muted-foreground mb-4 max-w-xs">{mockProfile.bio}</p>
 
-            <Link href="/friends" className="text-sm font-medium text-forest-500 dark:text-cream-300">
+            <Link href="/friends" className="text-sm font-medium text-forest-500">
               {mockProfile.friendsCount} Friends
             </Link>
           </div>
