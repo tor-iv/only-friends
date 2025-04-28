@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Send, User } from "lucide-react"
+import { ArrowLeft, Send, User, Clock } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -70,6 +70,8 @@ const mockPost = {
       timestamp: "5 minutes ago",
     },
   ],
+  isTemporary: true,
+  expiresIn: "22 hours left",
 }
 
 export default function PostDetailPage({ params }: { params: { id: string } }) {
@@ -78,9 +80,9 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-background border-b p-4">
+      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center">
-          <Link href="/home" className="inline-flex items-center text-forest-500 dark:text-cream-300">
+          <Link href="/home" className="inline-flex items-center text-forest-500">
             <ArrowLeft className="mr-2 h-5 w-5" />
             Back
           </Link>
@@ -89,26 +91,35 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
       </header>
       <main className="flex-1 p-4 pb-20">
         <div className="w-full max-w-lg mx-auto">
-          <Card className="overflow-hidden mb-4">
+          <Card className={`overflow-hidden mb-4 ${mockPost.isTemporary ? "border-forest-200 border-2" : ""}`}>
             <CardHeader className="p-4">
-              <div className="flex items-center gap-3">
-                {mockPost.user.profilePicture ? (
-                  <Image
-                    src={mockPost.user.profilePicture || "/placeholder.svg"}
-                    alt={mockPost.user.name}
-                    width={40}
-                    height={40}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                    <User className="w-5 h-5 text-muted-foreground" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {mockPost.user.profilePicture ? (
+                    <Image
+                      src={mockPost.user.profilePicture || "/placeholder.svg"}
+                      alt={mockPost.user.name}
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <User className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div>
+                    <div className="font-medium">{mockPost.user.name}</div>
+                    <div className="text-xs text-muted-foreground">{mockPost.timestamp}</div>
+                  </div>
+                </div>
+
+                {mockPost.isTemporary && mockPost.expiresIn && (
+                  <div className="flex items-center text-xs text-forest-600 font-medium">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {mockPost.expiresIn}
                   </div>
                 )}
-                <div>
-                  <div className="font-medium">{mockPost.user.name}</div>
-                  <div className="text-xs text-muted-foreground">{mockPost.timestamp}</div>
-                </div>
               </div>
             </CardHeader>
 
@@ -160,7 +171,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </main>
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 z-20">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-20">
         <div className="w-full max-w-lg mx-auto flex items-center gap-2">
           <Input placeholder="Add a comment..." className="flex-1" />
           <Button size="icon" className="bg-forest-500 hover:bg-forest-600">

@@ -5,13 +5,16 @@ import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, ImageIcon, X } from "lucide-react"
+import { ArrowLeft, ImageIcon, X, Clock } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 export default function CreatePostPage() {
   const [caption, setCaption] = useState("")
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [isTemporary, setIsTemporary] = useState(false)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -28,9 +31,9 @@ export default function CreatePostPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-background border-b p-4">
+      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center justify-between">
-          <Link href="/home" className="inline-flex items-center text-forest-500 dark:text-cream-300">
+          <Link href="/home" className="inline-flex items-center text-forest-500">
             <ArrowLeft className="mr-2 h-5 w-5" />
             Back
           </Link>
@@ -79,10 +82,23 @@ export default function CreatePostPage() {
                 </label>
               </div>
             )}
+
+            <div className="flex items-center justify-between space-x-2 p-2 border rounded-lg">
+              <div className="flex items-center space-x-2">
+                <Clock className="h-5 w-5 text-forest-500" />
+                <div>
+                  <Label htmlFor="temporary-mode" className="font-medium">
+                    Temporary Post
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Post will disappear after 24 hours</p>
+                </div>
+              </div>
+              <Switch id="temporary-mode" checked={isTemporary} onCheckedChange={setIsTemporary} />
+            </div>
           </div>
 
           <Button
-            className="w-full bg-forest-500 hover:bg-forest-600 text-cream-100"
+            className={`w-full ${isTemporary ? "bg-forest-400" : "bg-forest-500"} hover:bg-forest-600 text-cream-100`}
             size="lg"
             disabled={!caption.trim() && !imagePreview}
             asChild

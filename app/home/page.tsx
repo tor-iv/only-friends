@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Bell } from "lucide-react"
-import StoryRow from "@/components/story-row"
 import PostCard from "@/components/post-card"
 import BottomNavigation from "@/components/bottom-navigation"
 
@@ -20,6 +19,8 @@ const mockPosts = [
       image: "/placeholder.svg?height=400&width=600",
     },
     commentCount: 5,
+    isTemporary: true,
+    expiresIn: "22 hours left",
   },
   {
     id: 2,
@@ -34,6 +35,7 @@ const mockPosts = [
       image: "/placeholder.svg?height=400&width=600",
     },
     commentCount: 12,
+    isTemporary: false,
   },
   {
     id: 3,
@@ -48,6 +50,38 @@ const mockPosts = [
       image: "/placeholder.svg?height=400&width=600",
     },
     commentCount: 8,
+    isTemporary: false,
+  },
+  {
+    id: 4,
+    user: {
+      id: 4,
+      name: "Jordan Lee",
+      profilePicture: "/placeholder.svg?height=40&width=40",
+    },
+    timestamp: "5 hours ago",
+    content: {
+      text: "Coffee date with my bestie! ☕️",
+      image: "/placeholder.svg?height=400&width=600",
+    },
+    commentCount: 3,
+    isTemporary: true,
+    expiresIn: "19 hours left",
+  },
+  {
+    id: 5,
+    user: {
+      id: 5,
+      name: "Casey Wilson",
+      profilePicture: "/placeholder.svg?height=40&width=40",
+    },
+    timestamp: "1 week ago",
+    content: {
+      text: "Finally got my dream car! Hard work pays off.",
+      image: "/placeholder.svg?height=400&width=600",
+    },
+    commentCount: 24,
+    isTemporary: false,
   },
 ]
 
@@ -67,8 +101,6 @@ export default function HomePage() {
 
       <main className="flex-1 p-4">
         <div className="w-full max-w-lg mx-auto space-y-6">
-          <StoryRow />
-
           <div className="space-y-6">
             {mockPosts.map((post) => (
               <PostCard key={post.id} post={post} />
