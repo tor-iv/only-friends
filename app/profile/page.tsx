@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Settings, User } from "lucide-react"
+import { Settings, User, Search, UserPlus } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import BottomNavigation from "@/components/bottom-navigation"
@@ -27,11 +27,18 @@ export default function ProfilePage() {
       <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center justify-between">
           <h1 className="font-serif text-2xl font-bold text-forest-500">Profile</h1>
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/settings">
-              <Settings className="h-5 w-5" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/search">
+                <Search className="h-5 w-5" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/settings">
+                <Settings className="h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -58,9 +65,15 @@ export default function ProfilePage() {
 
             <p className="text-sm text-muted-foreground mb-4 max-w-xs">{mockProfile.bio}</p>
 
-            <Link href="/friends" className="text-sm font-medium text-forest-500">
-              {mockProfile.friendsCount} Friends
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/friends" className="text-sm font-medium text-forest-500">
+                {mockProfile.friendsCount} Friends
+              </Link>
+              <Link href="/add-friends" className="text-sm font-medium text-forest-500 flex items-center gap-1">
+                <UserPlus className="h-4 w-4" />
+                Invite Friends
+              </Link>
+            </div>
           </div>
 
           <Tabs defaultValue="posts">

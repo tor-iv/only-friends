@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 import { ArrowLeft, Copy, MessageSquare, Search, User, UserPlus } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import BottomNavigation from "@/components/bottom-navigation"
 
 // Mock data for contacts
 const mockContacts = [
@@ -33,7 +34,7 @@ interface Contact {
   status: ContactStatus
 }
 
-export default function InviteFriendsPage() {
+export default function AddFriendsPage() {
   const [contacts, setContacts] = useState<Contact[]>(mockContacts)
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -64,11 +65,11 @@ export default function InviteFriendsPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="p-4 border-b">
+      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
         <div className="w-full max-w-md mx-auto">
-          <Link href="/contacts-access" className="inline-flex items-center text-forest-500">
+          <Link href="/home" className="inline-flex items-center text-forest-500">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+            Back to Home
           </Link>
         </div>
       </header>
@@ -180,11 +181,13 @@ export default function InviteFriendsPage() {
 
           <div className="mt-8">
             <Button className="w-full bg-forest-500 hover:bg-forest-600 text-cream-100" size="lg" asChild>
-              <Link href={connectedContacts.length >= 5 ? "/home" : "/pending-progress"}>Continue</Link>
+              <Link href="/home">Done</Link>
             </Button>
           </div>
         </div>
       </main>
+
+      <BottomNavigation />
     </div>
   )
 }

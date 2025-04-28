@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Bell } from "lucide-react"
+import { Bell, Search } from "lucide-react"
 import PostCard from "@/components/post-card"
 import BottomNavigation from "@/components/bottom-navigation"
 
@@ -91,11 +91,18 @@ export default function HomePage() {
       <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center justify-between">
           <h1 className="font-serif text-2xl font-bold text-forest-500">Only Friends</h1>
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/notifications">
-              <Bell className="h-5 w-5" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/search">
+                <Search className="h-5 w-5" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/notifications">
+                <Bell className="h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 
