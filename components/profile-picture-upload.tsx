@@ -5,7 +5,11 @@ import type React from "react"
 import { useState } from "react"
 import { Upload, User } from "lucide-react"
 
-export default function ProfilePictureUpload() {
+interface ProfilePictureUploadProps {
+  onChange?: (file: File | null) => void
+}
+
+export default function ProfilePictureUpload({ onChange }: ProfilePictureUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -15,6 +19,11 @@ export default function ProfilePictureUpload() {
     // Create a preview URL
     const url = URL.createObjectURL(file)
     setPreviewUrl(url)
+
+    // Call the onChange handler if provided
+    if (onChange) {
+      onChange(file)
+    }
   }
 
   return (
