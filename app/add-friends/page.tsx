@@ -65,7 +65,7 @@ export default function AddFriendsPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
+      <header className="sticky top-0 z-10 bg-background border-b p-4 shadow-sm">
         <div className="w-full max-w-md mx-auto">
           <Link href="/home" className="inline-flex items-center text-forest-500">
             <ArrowLeft className="mr-2 h-4 w-4" />

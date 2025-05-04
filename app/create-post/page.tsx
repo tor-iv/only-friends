@@ -31,7 +31,7 @@ export default function CreatePostPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
+      <header className="sticky top-0 z-10 bg-black border-b border-gray-800 p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center justify-between">
           <Link href="/home" className="inline-flex items-center text-forest-500">
             <ArrowLeft className="mr-2 h-5 w-5" />

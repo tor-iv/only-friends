@@ -39,7 +39,7 @@ export default function FriendDetailPage({ params }: { params: { id: string } })
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-background border-b p-4">
+      <header className="sticky top-0 z-10 bg-background border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center">
           <Link href="/friends" className="inline-flex items-center text-forest-500 dark:text-cream-300">
             <ArrowLeft className="mr-2 h-5 w-5" />

@@ -53,7 +53,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-6 leaf-pattern">
+    <div className="min-h-screen flex flex-col items-center p-6 bg-background">
       <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center flex-grow">
         <div className="w-full">
           <Link href="/" className="inline-flex items-center text-forest-500 dark:text-cream-300 mb-8">

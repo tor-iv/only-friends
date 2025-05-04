@@ -71,7 +71,7 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
+      <header className="sticky top-0 z-10 bg-background border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center gap-3">
           <Link href="/home" className="text-forest-500">
             <ArrowLeft className="h-5 w-5" />

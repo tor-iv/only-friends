@@ -6,7 +6,7 @@ import { ChevronRight } from "lucide-react"
 
 export default function WelcomePage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-between p-6 leaf-pattern">
+    <div className="min-h-screen flex flex-col items-center justify-between p-6 bg-background">
       <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center flex-grow">
         <div className="text-center mb-12">
           <h1 className="font-serif text-4xl md:text-5xl font-bold text-forest-500 dark:text-cream-300">

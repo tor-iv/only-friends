@@ -88,7 +88,7 @@ const mockPosts = [
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
+      <header className="sticky top-0 z-10 bg-background border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center justify-between">
           <h1 className="font-serif text-2xl font-bold text-forest-500">Only Friends</h1>
           <div className="flex items-center gap-2">

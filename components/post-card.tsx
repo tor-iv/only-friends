@@ -29,21 +29,25 @@ export default function PostCard({ post }: PostProps) {
       <CardHeader className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {post.user.profilePicture ? (
-              <Image
-                src={post.user.profilePicture || "/placeholder.svg"}
-                alt={post.user.name}
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                <User className="w-5 h-5 text-muted-foreground" />
-              </div>
-            )}
+            <Link href={`/friend/${post.user.id}`} className="block">
+              {post.user.profilePicture ? (
+                <Image
+                  src={post.user.profilePicture || "/placeholder.svg"}
+                  alt={post.user.name}
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <User className="w-5 h-5 text-muted-foreground" />
+                </div>
+              )}
+            </Link>
             <div>
-              <div className="font-medium">{post.user.name}</div>
+              <Link href={`/friend/${post.user.id}`} className="font-medium hover:text-forest-500 transition-colors">
+                {post.user.name}
+              </Link>
               <div className="text-xs text-muted-foreground">{post.timestamp}</div>
             </div>
           </div>
