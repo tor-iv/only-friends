@@ -6,7 +6,6 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import OtpInput from "@/components/otp-input"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
 import { formatPhoneNumberForDisplay } from "@/lib/twilio"
 
 export default function VerifyPage() {
@@ -71,7 +70,20 @@ export default function VerifyPage() {
     setSuccessMessage("")
 
     try {
-      // Verify the OTP
+      // For development, check against the stored code
+      const storedCode = sessionStorage.getItem("verificationCode")
+      if (storedCode && otp === storedCode) {
+        console.log("Development mode: Verification successful with stored code")
+        setSuccessMessage("Phone number verified successfully!")
+
+        // Navigate to create profile page after a short delay
+        setTimeout(() => {
+          router.push("/create-profile")
+        }, 1500)
+        return
+      }
+
+      // Verify the OTP via API
       const verifyResponse = await fetch("/api/auth/verify-code", {
         method: "POST",
         headers: {
@@ -86,31 +98,6 @@ export default function VerifyPage() {
         throw new Error(verifyData.error || "Invalid verification code")
       }
 
-      // Generate a random email based on the phone number to use with Supabase
-      const randomEmail = `user_${Date.now()}@onlyfriends.app`
-      const password = `password_${Date.now()}`
-
-      // Sign up the user with Supabase
-      const { error } = await supabase.auth.signUp({
-        email: randomEmail,
-        password,
-        phone: phoneNumber,
-        options: {
-          data: {
-            phone_number: phoneNumber,
-            verified: true,
-          },
-        },
-      })
-
-      if (error) {
-        throw error
-      }
-
-      // Store the credentials for the login page
-      sessionStorage.setItem("tempEmail", randomEmail)
-      sessionStorage.setItem("tempPassword", password)
-
       // Show success message
       setSuccessMessage("Phone number verified successfully!")
 
@@ -118,9 +105,9 @@ export default function VerifyPage() {
       setTimeout(() => {
         router.push("/create-profile")
       }, 1500)
-    } catch (err: any) {
-      console.error(err)
-      setError(err.message || "Failed to verify. Please try again.")
+    } catch (err) {
+      console.error("Verification error:", err)
+      setError(err instanceof Error ? err.message : "Failed to verify. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -149,14 +136,20 @@ export default function VerifyPage() {
         throw new Error(data.error || "Failed to resend verification code")
       }
 
+      // For development, if the API returns the verification code, store it
+      if (data.verificationCode) {
+        sessionStorage.setItem("verificationCode", data.verificationCode)
+        console.log("Development mode: New verification code stored:", data.verificationCode)
+      }
+
       // Reset the timer
       setTimeLeft(300)
 
       // Show success message
       setSuccessMessage(`New code sent to ${displayPhoneNumber}`)
-    } catch (err: any) {
-      console.error(err)
-      setError(err.message || "Failed to resend code. Please try again.")
+    } catch (err) {
+      console.error("Error resending code:", err)
+      setError(err instanceof Error ? err.message : "Failed to resend code. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -178,6 +171,11 @@ export default function VerifyPage() {
           <div className="text-center mb-8">
             <h1 className="font-serif text-2xl font-bold mb-2">Verify your number</h1>
             <p className="text-muted-foreground">We've sent a code to {displayPhoneNumber}</p>
+            {process.env.NODE_ENV !== "production" && (
+              <p className="text-xs text-forest-500 mt-2">
+                Development mode: Check the console for the verification code
+              </p>
+            )}
           </div>
 
           <div className="space-y-8">

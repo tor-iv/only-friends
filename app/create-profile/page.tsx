@@ -10,12 +10,12 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import ProfilePictureUpload from "@/components/profile-picture-upload"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
-import { useAuth } from "@/context/auth-context"
+import { getSupabaseClient } from "@/lib/supabase"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function CreateProfilePage() {
-  const { user } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
@@ -39,63 +39,63 @@ export default function CreateProfilePage() {
     setError("")
 
     try {
-      if (!user) {
-        throw new Error("User not authenticated")
+      // Get the phone number from session storage (set during verification)
+      const phoneNumber = sessionStorage.getItem("phoneNumber")
+      if (!phoneNumber) {
+        throw new Error("Phone number not found. Please restart the signup process.")
       }
 
-      // Upload profile picture if provided
-      let profilePictureUrl = null
-      if (profilePicture) {
-        const fileExt = profilePicture.name.split(".").pop()
-        const fileName = `${user.id}-${Date.now()}.${fileExt}`
-        const { error: uploadError, data } = await supabase.storage
-          .from("profile-pictures")
-          .upload(fileName, profilePicture)
+      // Initialize Supabase client
+      const supabase = getSupabaseClient()
 
-        if (uploadError) {
-          throw uploadError
-        }
-
-        // Get the public URL
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("profile-pictures").getPublicUrl(fileName)
-
-        profilePictureUrl = publicUrl
-      }
-
-      // Update user metadata
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-          email: email,
-          profile_picture: profilePictureUrl,
-        },
-      })
-
-      if (updateError) {
-        throw updateError
-      }
-
-      // Create a profile record in the database
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: user.id,
+      // Create a temporary user profile without authentication
+      // We'll store this in session storage for now and create the actual profile
+      // after the user completes the signup process
+      const profileData = {
         first_name: firstName,
         last_name: lastName,
         email: email,
-        profile_picture_url: profilePictureUrl,
-      })
-
-      if (profileError) {
-        throw profileError
+        phone_number: phoneNumber,
+        profile_picture: null as string | null,
       }
+
+      // Handle profile picture upload if provided
+      if (profilePicture) {
+        try {
+          // Generate a unique filename
+          const fileExt = profilePicture.name.split(".").pop()
+          const fileName = `temp-${Date.now()}.${fileExt}`
+
+          // Create a blob URL for the profile picture
+          // This is temporary and will be replaced with a proper upload
+          // when the user completes the signup process
+          const profilePictureUrl = URL.createObjectURL(profilePicture)
+          profileData.profile_picture = profilePictureUrl
+        } catch (uploadError) {
+          console.error("Error handling profile picture:", uploadError)
+          // Continue without the profile picture
+        }
+      }
+
+      // Store the profile data in session storage
+      sessionStorage.setItem("tempProfileData", JSON.stringify(profileData))
+
+      // Show success message
+      toast({
+        title: "Profile created",
+        description: "Your profile has been created successfully.",
+      })
 
       // Navigate to the next step
       router.push("/contacts-access")
     } catch (err: any) {
-      console.error(err)
+      console.error("Error creating profile:", err)
       setError(err.message || "Failed to create profile. Please try again.")
+      toast({
+        title: "Error",
+        description: err.message || "Failed to create profile. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }

@@ -21,7 +21,6 @@ export default function WelcomePage() {
   // Format phone number as user types
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value
-
     // Remove all non-digit characters
     const digitsOnly = input.replace(/\D/g, "")
 
@@ -64,7 +63,15 @@ export default function WelcomePage() {
         return
       }
 
-      const fullPhoneNumber = `${countryCode}${formattedNumber}`
+      // Format the phone number with the country code in E.164 format
+      let fullPhoneNumber = `${countryCode}${formattedNumber}`
+
+      // Make sure the phone number has the + prefix (E.164 format)
+      if (!fullPhoneNumber.startsWith("+")) {
+        fullPhoneNumber = `+${fullPhoneNumber.replace(/^\+/, "")}`
+      }
+
+      console.log("Sending verification to phone number:", fullPhoneNumber)
 
       // Send verification code
       const response = await fetch("/api/auth/send-verification", {
@@ -78,14 +85,22 @@ export default function WelcomePage() {
       const data = await response.json()
 
       if (!response.ok) {
+        // Special handling for rate limiting errors
+        if (response.status === 429) {
+          throw new Error(data.error || "Too many verification attempts. Please try again later.")
+        }
         throw new Error(data.error || "Failed to send verification code")
       }
 
       // Store the phone number in session storage for the verification step
       sessionStorage.setItem("phoneNumber", fullPhoneNumber)
 
-      // Show success message
-      setSuccessMessage(`Verification code sent to ${fullPhoneNumber}`)
+      // Show success message with attempts remaining if available
+      let message = `Verification code sent to ${fullPhoneNumber}`
+      if (data.attemptsRemaining !== undefined) {
+        message += ` (${data.attemptsRemaining} attempt${data.attemptsRemaining !== 1 ? "s" : ""} remaining)`
+      }
+      setSuccessMessage(message)
 
       // Navigate to verification page after a short delay
       setTimeout(() => {

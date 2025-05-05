@@ -55,12 +55,26 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create verification_codes table
+CREATE TABLE IF NOT EXISTS verification_codes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  phone_number TEXT NOT NULL,
+  code TEXT NOT NULL,
+  used BOOLEAN DEFAULT FALSE,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add index for faster lookups
+CREATE INDEX IF NOT EXISTS verification_codes_phone_number_idx ON verification_codes(phone_number);
+
 -- Create RLS policies
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE friends ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE verification_codes ENABLE ROW LEVEL SECURITY;
 
 -- Profiles policies
 CREATE POLICY "Users can view all profiles" 
@@ -138,6 +152,25 @@ CREATE POLICY "Users can update their own notifications"
 CREATE POLICY "Users can delete their own notifications" 
   ON notifications FOR DELETE 
   USING (auth.uid() = user_id);
+
+-- Verification codes policies
+CREATE POLICY "Service role can manage verification codes"
+  ON verification_codes
+  USING (true);
+
+CREATE POLICY "Users can view their own verification codes"
+  ON verification_codes FOR SELECT
+  USING (auth.uid() IS NOT NULL AND phone_number = (
+    SELECT phone_number FROM auth.users WHERE id = auth.uid()
+  ));
+
+CREATE POLICY "Service role can insert verification codes"
+  ON verification_codes FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "Service role can update verification codes"
+  ON verification_codes FOR UPDATE
+  USING (true);
 
 -- Create storage bucket for profile pictures
 INSERT INTO storage.buckets (id, name) VALUES ('profile-pictures', 'profile-pictures')

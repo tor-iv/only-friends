@@ -1,8 +1,29 @@
+"use client"
+
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowLeft, Users } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function ContactsAccessPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
+  useEffect(() => {
+    // Check if we have temporary profile data
+    const tempProfileData = sessionStorage.getItem("tempProfileData")
+    if (!tempProfileData) {
+      toast({
+        title: "Profile data missing",
+        description: "Please complete your profile first.",
+        variant: "destructive",
+      })
+      router.push("/create-profile")
+    }
+  }, [router, toast])
+
   return (
     <div className="min-h-screen flex flex-col items-center p-6 bg-background">
       <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center flex-grow">

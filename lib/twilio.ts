@@ -1,70 +1,37 @@
-import twilio from "twilio"
+// Function to normalize phone numbers to E.164 format
+export function normalizePhoneNumberForTwilio(phoneNumber: string): string {
+  // Remove all non-digit characters except the leading +
+  let formatted = phoneNumber.replace(/[^\d+]/g, "")
 
-// Initialize Twilio client with environment variables
-const accountSid = process.env.TWILIO_ACCOUNT_SID
-const authToken = process.env.TWILIO_AUTH_TOKEN
-const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER
-
-// Create Twilio client
-let client: any = null
-
-// Function to get or initialize the Twilio client
-function getTwilioClient() {
-  if (!client && accountSid && authToken) {
-    try {
-      client = twilio(accountSid, authToken)
-    } catch (error) {
-      console.error("Failed to initialize Twilio client:", error)
-      throw new Error("Failed to initialize Twilio client")
+  // If doesn't start with +, add it
+  if (!formatted.startsWith("+")) {
+    // For US numbers
+    if (formatted.length === 10) {
+      formatted = `+1${formatted}`
+    } else if (formatted.length === 11 && formatted.startsWith("1")) {
+      formatted = `+${formatted}`
+    } else {
+      // For other cases, just add the +
+      formatted = `+${formatted}`
     }
   }
 
-  if (!client) {
-    throw new Error("Twilio client not initialized. Check your environment variables.")
-  }
-
-  return client
-}
-
-// Function to send verification code via SMS
-export async function sendVerificationCode(phoneNumber: string, code: string) {
-  try {
-    // Validate phone number format
-    if (!phoneNumber || typeof phoneNumber !== "string") {
-      return { success: false, error: "Invalid phone number format" }
-    }
-
-    const client = getTwilioClient()
-
-    if (!twilioPhoneNumber) {
-      return { success: false, error: "Twilio phone number not configured" }
-    }
-
-    const message = await client.messages.create({
-      body: `Your Only Friends verification code is: ${code}`,
-      from: twilioPhoneNumber,
-      to: phoneNumber,
-    })
-
-    return { success: true, messageId: message.sid }
-  } catch (error) {
-    console.error("Error sending SMS:", error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error sending SMS",
-    }
-  }
+  console.log("Normalized phone number for Twilio:", formatted)
+  return formatted
 }
 
 // Generate a random verification code
-export function generateVerificationCode(length = 6) {
-  return Math.floor(Math.random() * Math.pow(10, length))
-    .toString()
-    .padStart(length, "0")
+export function generateVerificationCode(length = 6): string {
+  // This ensures we always get a string of exactly the right length
+  let code = ""
+  for (let i = 0; i < length; i++) {
+    code += Math.floor(Math.random() * 10).toString()
+  }
+  return code
 }
 
 // Function to format phone number for display
-export function formatPhoneNumberForDisplay(phoneNumber: string) {
+export function formatPhoneNumberForDisplay(phoneNumber: string): string {
   // Basic formatting for US numbers, can be expanded for international
   try {
     if (!phoneNumber) return ""
@@ -88,5 +55,67 @@ export function formatPhoneNumberForDisplay(phoneNumber: string) {
   } catch (error) {
     console.error("Error formatting phone number:", error)
     return phoneNumber // Return original if formatting fails
+  }
+}
+
+// Send verification code using the Twilio API - SERVER SIDE ONLY
+export async function sendVerificationCode(phoneNumber: string, code: string) {
+  try {
+    // Validate phone number format
+    if (!phoneNumber || typeof phoneNumber !== "string") {
+      return { success: false, error: "Invalid phone number format" }
+    }
+
+    // Check if we have Twilio credentials
+    const accountSid = process.env.TWILIO_ACCOUNT_SID
+    const authToken = process.env.TWILIO_AUTH_TOKEN
+    const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER
+
+    if (!accountSid || !authToken || !twilioPhoneNumber) {
+      console.error("Twilio credentials missing - cannot send SMS")
+      return { success: false, error: "Twilio credentials missing" }
+    }
+
+    console.log(`Sending verification code ${code} to ${phoneNumber} via Twilio API`)
+
+    // Make the actual Twilio API call
+    const twilioApiUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`
+
+    // Create the authorization string
+    const auth = Buffer.from(`${accountSid}:${authToken}`).toString("base64")
+
+    const response = await fetch(twilioApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${auth}`,
+      },
+      body: new URLSearchParams({
+        To: phoneNumber,
+        From: twilioPhoneNumber,
+        Body: `Your Only Friends verification code is: ${code}`,
+      }).toString(),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error("Twilio API error:", errorData)
+      throw new Error(`Twilio API error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    console.log("Twilio API success, message SID:", data.sid)
+
+    // Return only the success status and message ID
+    return {
+      success: true,
+      messageId: data.sid,
+    }
+  } catch (error) {
+    console.error("Error sending SMS:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error sending SMS",
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
+import { verifyCode } from "@/lib/verification-store"
+import { normalizePhoneNumberForTwilio } from "@/lib/twilio"
 
 export async function POST(request: Request) {
   try {
@@ -17,43 +18,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Phone number and code are required" }, { status: 400 })
     }
 
-    // Check if the verification code is valid
-    try {
-      const { data, error } = await supabase
-        .from("verification_codes")
-        .select("*")
-        .eq("phone_number", phoneNumber)
-        .eq("code", code)
-        .gt("expires_at", new Date().toISOString())
-        .eq("used", false)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single()
+    // Normalize the phone number
+    const normalizedPhoneNumber = normalizePhoneNumberForTwilio(phoneNumber)
 
-      if (error || !data) {
-        console.error("Error verifying code:", error)
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Invalid or expired verification code. Please request a new code.",
-          },
-          { status: 400 },
-        )
-      }
+    // Verify the code
+    const isValid = await verifyCode(normalizedPhoneNumber, code)
 
-      // Mark the verification code as used
-      const { error: updateError } = await supabase.from("verification_codes").update({ used: true }).eq("id", data.id)
-
-      if (updateError) {
-        console.error("Error marking code as used:", updateError)
-        // Continue anyway, not critical
-      }
-
-      return NextResponse.json({ success: true, verified: true })
-    } catch (dbError) {
-      console.error("Database error during verification:", dbError)
-      return NextResponse.json({ success: false, error: "Database error during verification" }, { status: 500 })
+    if (!isValid) {
+      return NextResponse.json({ success: false, error: "Invalid or expired verification code" }, { status: 400 })
     }
+
+    return NextResponse.json({ success: true, verified: true })
   } catch (error) {
     console.error("Error in verify-code API:", error)
     return NextResponse.json(
