@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
-import { sendVerificationCode, generateVerificationCode, normalizePhoneNumberForTwilio } from "@/lib/twilio"
-import { storeVerificationCode, checkRateLimit } from "@/lib/verification-store"
+import { normalizePhoneNumberForTwilio } from "@/lib/twilio"
+import { checkRateLimit } from "@/lib/verification-store"
+import { sendVerificationSMS } from "@/lib/twilio-service"
 
 // This is a server-side only API route
 export async function POST(request: Request) {
@@ -36,7 +37,9 @@ export async function POST(request: Request) {
         const waitMinutes = Math.ceil(
           (rateLimitCheck.nextAllowedAttempt.getTime() - new Date().getTime()) / (1000 * 60),
         )
-        waitTimeMessage = `Too many verification attempts. Please try again in ${waitMinutes} minute${waitMinutes !== 1 ? "s" : ""}.`
+        waitTimeMessage = `Too many verification attempts. Please try again in ${waitMinutes} minute${
+          waitMinutes !== 1 ? "s" : ""
+        }.`
       }
 
       return NextResponse.json(
@@ -50,19 +53,8 @@ export async function POST(request: Request) {
       )
     }
 
-    // Generate a verification code
-    const verificationCode = generateVerificationCode()
-    console.log("Generated verification code:", verificationCode)
-
-    // Store the verification code in the database
-    const storeSuccess = await storeVerificationCode(normalizedPhoneNumber, verificationCode)
-
-    if (!storeSuccess) {
-      return NextResponse.json({ success: false, error: "Failed to store verification code" }, { status: 500 })
-    }
-
-    // Send the verification code via Twilio
-    const result = await sendVerificationCode(normalizedPhoneNumber, verificationCode)
+    // Send the verification SMS
+    const result = await sendVerificationSMS(normalizedPhoneNumber)
 
     if (!result.success) {
       return NextResponse.json(
@@ -71,12 +63,19 @@ export async function POST(request: Request) {
       )
     }
 
-    // Return success response without the verification code
-    return NextResponse.json({
+    // Return success response
+    const response: any = {
       success: true,
       message: "Verification code sent",
       attemptsRemaining: 5 - (rateLimitCheck.attemptsCount + 1), // Include this attempt
-    })
+    }
+
+    // Include verification code in development mode
+    if (process.env.NODE_ENV !== "production" && result.verificationCode) {
+      response.verificationCode = result.verificationCode
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error("Error in send-verification API:", error)
     return NextResponse.json(

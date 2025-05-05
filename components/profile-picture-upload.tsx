@@ -2,15 +2,23 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Upload, User } from "lucide-react"
 
 interface ProfilePictureUploadProps {
   onChange?: (file: File | null) => void
+  initialImage?: string | null
 }
 
-export default function ProfilePictureUpload({ onChange }: ProfilePictureUploadProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+export default function ProfilePictureUpload({ onChange, initialImage }: ProfilePictureUploadProps) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialImage || null)
+
+  useEffect(() => {
+    // If initialImage is provided, use it for the preview
+    if (initialImage) {
+      setPreviewUrl(initialImage)
+    }
+  }, [initialImage])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

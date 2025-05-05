@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
-import { verifyCode } from "@/lib/verification-store"
-import { normalizePhoneNumberForTwilio } from "@/lib/twilio"
+import { verifyPhoneNumber } from "@/lib/twilio-service"
 
 export async function POST(request: Request) {
   try {
@@ -18,14 +17,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Phone number and code are required" }, { status: 400 })
     }
 
-    // Normalize the phone number
-    const normalizedPhoneNumber = normalizePhoneNumberForTwilio(phoneNumber)
+    // Verify the phone number
+    const result = await verifyPhoneNumber(phoneNumber, code)
 
-    // Verify the code
-    const isValid = await verifyCode(normalizedPhoneNumber, code)
-
-    if (!isValid) {
-      return NextResponse.json({ success: false, error: "Invalid or expired verification code" }, { status: 400 })
+    if (!result.success) {
+      return NextResponse.json({ success: false, error: result.error || "Invalid verification code" }, { status: 400 })
     }
 
     return NextResponse.json({ success: true, verified: true })

@@ -10,7 +10,6 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import ProfilePictureUpload from "@/components/profile-picture-upload"
 import { useRouter } from "next/navigation"
-import { getSupabaseClient } from "@/lib/supabase"
 import { useToast } from "@/components/ui/use-toast"
 
 export default function CreateProfilePage() {
@@ -25,6 +24,16 @@ export default function CreateProfilePage() {
 
   const handleProfilePictureChange = (file: File | null) => {
     setProfilePicture(file)
+  }
+
+  // Function to convert File to data URL
+  const fileToDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,12 +54,7 @@ export default function CreateProfilePage() {
         throw new Error("Phone number not found. Please restart the signup process.")
       }
 
-      // Initialize Supabase client
-      const supabase = getSupabaseClient()
-
       // Create a temporary user profile without authentication
-      // We'll store this in session storage for now and create the actual profile
-      // after the user completes the signup process
       const profileData = {
         first_name: firstName,
         last_name: lastName,
@@ -62,15 +66,9 @@ export default function CreateProfilePage() {
       // Handle profile picture upload if provided
       if (profilePicture) {
         try {
-          // Generate a unique filename
-          const fileExt = profilePicture.name.split(".").pop()
-          const fileName = `temp-${Date.now()}.${fileExt}`
-
-          // Create a blob URL for the profile picture
-          // This is temporary and will be replaced with a proper upload
-          // when the user completes the signup process
-          const profilePictureUrl = URL.createObjectURL(profilePicture)
-          profileData.profile_picture = profilePictureUrl
+          // Convert the file to a data URL instead of a blob URL
+          const dataUrl = await fileToDataUrl(profilePicture)
+          profileData.profile_picture = dataUrl
         } catch (uploadError) {
           console.error("Error handling profile picture:", uploadError)
           // Continue without the profile picture

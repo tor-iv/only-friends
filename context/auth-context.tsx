@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { supabaseBrowser } from "@/lib/supabase-browser"
 import type { Session, User } from "@supabase/supabase-js"
 import { useRouter } from "next/navigation"
 
@@ -44,68 +44,111 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const setData = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession()
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabaseBrowser.auth.getSession()
 
-      if (error) {
-        console.error(error)
+        if (error) {
+          console.error("Error getting session:", error)
+          setIsLoading(false)
+          return
+        }
+
+        setSession(session)
+        setUser(session?.user ?? null)
+      } catch (error) {
+        console.error("Error in auth setup:", error)
+      } finally {
         setIsLoading(false)
-        return
       }
-
-      setSession(session)
-      setUser(session?.user ?? null)
-      setIsLoading(false)
     }
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
+    let listener: { subscription: { unsubscribe: () => void } } | null = null
+
+    try {
+      const { data, error } = supabaseBrowser.auth.onAuthStateChange((_event, session) => {
+        setSession(session)
+        setUser(session?.user ?? null)
+        setIsLoading(false)
+      })
+
+      if (error) {
+        console.error("Error setting up auth listener:", error)
+      } else {
+        listener = data
+      }
+    } catch (error) {
+      console.error("Error in auth listener setup:", error)
       setIsLoading(false)
-    })
+    }
 
     setData()
 
     return () => {
-      listener?.subscription.unsubscribe()
+      if (listener?.subscription) {
+        try {
+          listener.subscription.unsubscribe()
+        } catch (error) {
+          console.error("Error unsubscribing from auth listener:", error)
+        }
+      }
     }
   }, [])
 
   const signUp = async (email: string, password: string, phone: string, metadata?: any) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      phone,
-      options: {
-        data: metadata,
-      },
-    })
+    try {
+      const { data, error } = await supabaseBrowser.auth.signUp({
+        email,
+        password,
+        phone,
+        options: {
+          data: metadata,
+        },
+      })
 
-    return { data, error }
+      return { data, error }
+    } catch (error) {
+      console.error("Error in signUp:", error)
+      return { data: null, error: error instanceof Error ? error : new Error("Unknown error in signUp") }
+    }
   }
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const { data, error } = await supabaseBrowser.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    return { data, error }
+      return { data, error }
+    } catch (error) {
+      console.error("Error in signIn:", error)
+      return { data: null, error: error instanceof Error ? error : new Error("Unknown error in signIn") }
+    }
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    router.push("/")
+    try {
+      await supabaseBrowser.auth.signOut()
+      router.push("/")
+    } catch (error) {
+      console.error("Error in signOut:", error)
+    }
   }
 
   const resetPassword = async (email: string) => {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    })
+    try {
+      const { data, error } = await supabaseBrowser.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
 
-    return { data, error }
+      return { data, error }
+    } catch (error) {
+      console.error("Error in resetPassword:", error)
+      return { data: null, error: error instanceof Error ? error : new Error("Unknown error in resetPassword") }
+    }
   }
 
   const value = {

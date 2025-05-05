@@ -72,30 +72,6 @@ export async function verifyCode(phoneNumber: string, code: string): Promise<boo
   }
 }
 
-export async function getActiveCode(phoneNumber: string): Promise<string | null> {
-  try {
-    const { data, error } = await supabase
-      .from("verification_codes")
-      .select("code")
-      .eq("phone_number", phoneNumber)
-      .eq("used", false)
-      .gt("expires_at", new Date().toISOString())
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single()
-
-    if (error || !data) {
-      return null
-    }
-
-    return data.code
-  } catch (error) {
-    console.error("Database error when getting active code:", error)
-    return null
-  }
-}
-
-// New function to check if a user has exceeded the rate limit
 export async function checkRateLimit(
   phoneNumber: string,
   maxAttempts = 5,
