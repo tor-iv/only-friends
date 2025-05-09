@@ -1,9 +1,15 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Calendar } from "lucide-react"
 import ProfilePictureUpload from "@/components/profile-picture-upload"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
 
 export default function CreateProfilePage() {
   return (
@@ -40,6 +46,14 @@ export default function CreateProfilePage() {
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" placeholder="your@email.com" />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="birthday">Birthday</Label>
+                <BirthdayPicker />
+                <p className="text-xs text-muted-foreground">
+                  Your birthday will be shared with friends on your special day.
+                </p>
+              </div>
             </div>
 
             <Button className="w-full bg-forest-500 hover:bg-forest-600 text-cream-100" size="lg" asChild>
@@ -49,5 +63,36 @@ export default function CreateProfilePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function BirthdayPicker() {
+  // In a real app, this would use useState
+  const date = new Date(1990, 0, 1)
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
+        >
+          <Calendar className="mr-2 h-4 w-4" />
+          {date ? format(date, "PPP") : <span>Pick a date</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <CalendarComponent
+          mode="single"
+          selected={date}
+          onSelect={() => {}}
+          initialFocus
+          disabled={(date) => date > new Date() || date < new Date(1900, 0, 1)}
+          captionLayout="dropdown-buttons"
+          fromYear={1900}
+          toYear={new Date().getFullYear()}
+        />
+      </PopoverContent>
+    </Popover>
   )
 }

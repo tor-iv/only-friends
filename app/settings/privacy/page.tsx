@@ -1,11 +1,9 @@
 "use client"
 
 import Link from "next/link"
-
 import type React from "react"
-
 import { Button } from "@/components/ui/button"
-import { Save, UserPlus, Eye, Lock, Shield } from "lucide-react"
+import { Save, Lock, Shield, MessageSquare } from "lucide-react"
 import { useState } from "react"
 import BackButton from "@/components/back-button"
 import { Switch } from "@/components/ui/switch"
@@ -13,11 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function PrivacySettingsPage() {
-  const [profileVisibility, setProfileVisibility] = useState("friends")
-  const [postVisibility, setPostVisibility] = useState("friends")
-  const [friendRequests, setFriendRequests] = useState("everyone")
+  const [commentVisibility, setCommentVisibility] = useState("post_followers")
   const [locationSharing, setLocationSharing] = useState(false)
-  const [activityStatus, setActivityStatus] = useState(true)
   const [readReceipts, setReadReceipts] = useState(true)
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -39,61 +34,30 @@ export default function PrivacySettingsPage() {
 
       <main className="flex-1 p-4">
         <div className="w-full max-w-lg mx-auto space-y-6">
+          <div className="bg-forest-50 p-4 rounded-lg border border-forest-100">
+            <p className="text-sm text-forest-800">
+              <strong>Only Friends</strong> is designed to share content exclusively with your friends. Your profile and
+              posts are only visible to people you're connected with.
+            </p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-6">
               <div className="space-y-4">
                 <h2 className="text-lg font-medium flex items-center">
-                  <Eye className="h-5 w-5 mr-2 text-forest-500" />
-                  Visibility
+                  <MessageSquare className="h-5 w-5 mr-2 text-forest-500" />
+                  Comment Privacy
                 </h2>
 
                 <div className="space-y-2">
-                  <Label htmlFor="profile-visibility">Who can see your profile</Label>
-                  <Select value={profileVisibility} onValueChange={setProfileVisibility}>
-                    <SelectTrigger id="profile-visibility">
-                      <SelectValue placeholder="Select who can see your profile" />
+                  <Label htmlFor="comment-visibility">Who can see your comments</Label>
+                  <Select value={commentVisibility} onValueChange={setCommentVisibility}>
+                    <SelectTrigger id="comment-visibility">
+                      <SelectValue placeholder="Select who can see your comments" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="everyone">Everyone</SelectItem>
-                      <SelectItem value="friends">Friends only</SelectItem>
-                      <SelectItem value="friends-of-friends">Friends of friends</SelectItem>
-                      <SelectItem value="nobody">Nobody</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="post-visibility">Who can see your posts</Label>
-                  <Select value={postVisibility} onValueChange={setPostVisibility}>
-                    <SelectTrigger id="post-visibility">
-                      <SelectValue placeholder="Select who can see your posts" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="everyone">Everyone</SelectItem>
-                      <SelectItem value="friends">Friends only</SelectItem>
-                      <SelectItem value="friends-of-friends">Friends of friends</SelectItem>
-                      <SelectItem value="nobody">Nobody</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t">
-                <h2 className="text-lg font-medium flex items-center">
-                  <UserPlus className="h-5 w-5 mr-2 text-forest-500" />
-                  Connections
-                </h2>
-
-                <div className="space-y-2">
-                  <Label htmlFor="friend-requests">Who can send you friend requests</Label>
-                  <Select value={friendRequests} onValueChange={setFriendRequests}>
-                    <SelectTrigger id="friend-requests">
-                      <SelectValue placeholder="Select who can send you friend requests" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="everyone">Everyone</SelectItem>
-                      <SelectItem value="friends-of-friends">Friends of friends</SelectItem>
-                      <SelectItem value="nobody">Nobody</SelectItem>
+                      <SelectItem value="post_followers">Anyone that follows posts</SelectItem>
+                      <SelectItem value="friends">Only friends</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -111,14 +75,6 @@ export default function PrivacySettingsPage() {
                     <p className="text-sm text-muted-foreground">Allow friends to see your location</p>
                   </div>
                   <Switch id="location-sharing" checked={locationSharing} onCheckedChange={setLocationSharing} />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="activity-status">Activity status</Label>
-                    <p className="text-sm text-muted-foreground">Show when you're active</p>
-                  </div>
-                  <Switch id="activity-status" checked={activityStatus} onCheckedChange={setActivityStatus} />
                 </div>
 
                 <div className="flex items-center justify-between">
