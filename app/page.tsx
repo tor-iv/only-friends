@@ -22,7 +22,7 @@ export default function WelcomePage() {
                   <SelectValue placeholder="Country" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="US">+1</SelectItem>
+                  <SelectItem value="US">+3</SelectItem>
                   <SelectItem value="UK">+44</SelectItem>
                   <SelectItem value="CA">+1</SelectItem>
                   <SelectItem value="AU">+61</SelectItem>
