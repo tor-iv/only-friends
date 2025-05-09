@@ -58,7 +58,7 @@ const mockNotifications = [
 export default function NotificationsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-background border-b p-4 shadow-sm">
+      <header className="sticky top-0 z-10 bg-background border-b p-4">
         <div className="w-full max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center">
             <Link href="/home" className="inline-flex items-center text-forest-500 dark:text-cream-300">
@@ -76,27 +76,26 @@ export default function NotificationsPage() {
       <main className="flex-1 p-4">
         <div className="w-full max-w-lg mx-auto space-y-4">
           {mockNotifications.map((notification) => (
-            <div
+            <Link
               key={notification.id}
+              href={notification.link}
               className={`block p-4 border rounded-lg ${notification.read ? "" : "bg-forest-50 dark:bg-forest-900/20"}`}
             >
               <div className="flex gap-3">
                 {"user" in notification ? (
-                  <Link href={`/friend/${notification.user.id}`} className="flex-shrink-0">
-                    {notification.user.profilePicture ? (
-                      <Image
-                        src={notification.user.profilePicture || "/placeholder.svg"}
-                        alt={notification.user.name}
-                        width={40}
-                        height={40}
-                        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                        <User className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    )}
-                  </Link>
+                  notification.user.profilePicture ? (
+                    <Image
+                      src={notification.user.profilePicture || "/placeholder.svg"}
+                      alt={notification.user.name}
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                      <User className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-forest-100 dark:bg-forest-800 flex items-center justify-center flex-shrink-0">
                     <svg
@@ -117,23 +116,12 @@ export default function NotificationsPage() {
                 )}
 
                 <div className="flex-1">
-                  {"user" in notification ? (
-                    <Link
-                      href={`/friend/${notification.user.id}`}
-                      className="font-medium hover:text-forest-500 transition-colors"
-                    >
-                      {notification.user.name}
-                    </Link>
-                  ) : (
-                    <div className="font-medium">Only Friends</div>
-                  )}
-                  <Link href={notification.link} className="block">
-                    <div className="text-sm text-muted-foreground">{notification.content}</div>
-                    <div className="text-xs text-muted-foreground mt-1">{notification.timestamp}</div>
-                  </Link>
+                  <div className="font-medium">{"user" in notification ? notification.user.name : "Only Friends"}</div>
+                  <div className="text-sm text-muted-foreground">{notification.content}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{notification.timestamp}</div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </main>

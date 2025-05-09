@@ -8,7 +8,7 @@ export default function BottomNavigation() {
   const pathname = usePathname()
 
   return (
-    <div className="sticky bottom-0 z-10 bg-background border-t shadow-sm">
+    <div className="sticky bottom-0 z-10 bg-white border-t shadow-sm">
       <div className="w-full max-w-lg mx-auto flex items-center justify-around">
         <Link
           href="/home"

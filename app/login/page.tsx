@@ -2,42 +2,31 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/context/auth-context"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { signIn } = useAuth()
   const [phoneNumber, setPhoneNumber] = useState("")
-  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  // For demo purposes, we'll use the email and password from session storage
-  // In a real app, you would have a proper login flow
-  useEffect(() => {
-    const tempEmail = sessionStorage.getItem("tempEmail")
-    if (tempEmail) {
-      setEmail(tempEmail)
-    }
-  }, [])
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // Basic validation
-    if (!email.trim()) {
-      setError("Please enter your email")
+    if (!phoneNumber.trim()) {
+      setError("Please enter your phone number")
       return
     }
 
@@ -50,24 +39,21 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const { error } = await signIn(email, password)
-
-      if (error) {
-        throw error
-      }
+      // In a real app, you would call an API to authenticate the user
+      // For this demo, we'll simulate a successful login after a short delay
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
       // Redirect to home page after successful login
       router.push("/home")
-    } catch (err: any) {
-      console.error(err)
-      setError(err.message || "Invalid email or password")
+    } catch (err) {
+      setError("Invalid phone number or password")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-6 bg-background">
+    <div className="min-h-screen flex flex-col items-center p-6 leaf-pattern">
       <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center flex-grow">
         <div className="w-full">
           <Link href="/" className="inline-flex items-center text-forest-500 dark:text-cream-300 mb-8">
@@ -83,14 +69,28 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+                <Label htmlFor="phone">Phone Number</Label>
+                <div className="flex">
+                  <Select defaultValue="US">
+                    <SelectTrigger className="w-[80px] rounded-r-none">
+                      <SelectValue placeholder="Country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="US">+1</SelectItem>
+                      <SelectItem value="UK">+44</SelectItem>
+                      <SelectItem value="CA">+1</SelectItem>
+                      <SelectItem value="AU">+61</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="(555) 123-4567"
+                    className="flex-1 rounded-l-none"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

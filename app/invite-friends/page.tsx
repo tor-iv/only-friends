@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -9,8 +9,6 @@ import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 import { ArrowLeft, Copy, MessageSquare, Search, User, UserPlus } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/components/ui/use-toast"
 
 // Mock data for contacts
 const mockContacts = [
@@ -36,31 +34,8 @@ interface Contact {
 }
 
 export default function InviteFriendsPage() {
-  const router = useRouter()
-  const { toast } = useToast()
   const [contacts, setContacts] = useState<Contact[]>(mockContacts)
   const [searchQuery, setSearchQuery] = useState("")
-  const [defaultTab, setDefaultTab] = useState("invite")
-
-  useEffect(() => {
-    // Check if we have temporary profile data
-    const tempProfileData = sessionStorage.getItem("tempProfileData")
-    if (!tempProfileData) {
-      toast({
-        title: "Profile data missing",
-        description: "Please complete your profile first.",
-        variant: "destructive",
-      })
-      router.push("/create-profile")
-    }
-
-    // Check if there's a tab parameter in the URL
-    const urlParams = new URLSearchParams(window.location.search)
-    const tabParam = urlParams.get("tab")
-    if (tabParam === "pending") {
-      setDefaultTab("pending")
-    }
-  }, [router, toast])
 
   const filteredContacts = contacts.filter((contact) => contact.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
@@ -91,7 +66,7 @@ export default function InviteFriendsPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <header className="p-4 border-b">
         <div className="w-full max-w-md mx-auto">
-          <Link href="/contacts-access" className="inline-flex items-center text-forest-500">
+          <Link href="/contacts-access" className="inline-flex items-center text-forest-500 dark:text-cream-300">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Link>
@@ -100,7 +75,7 @@ export default function InviteFriendsPage() {
 
       <main className="flex-1 p-4">
         <div className="w-full max-w-md mx-auto">
-          <Tabs defaultValue={defaultTab}>
+          <Tabs defaultValue="invite">
             <TabsList className="w-full mb-6">
               <TabsTrigger value="invite" className="flex-1">
                 Invite Friends

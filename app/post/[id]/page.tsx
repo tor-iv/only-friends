@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Send, User, Clock } from "lucide-react"
-import Link from "next/link"
+import { Send, User, Clock } from "lucide-react"
 import Image from "next/image"
+import BackButton from "@/components/back-button"
 
 // Mock data for a post
 const mockPost = {
@@ -80,12 +80,9 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-background border-b p-4 shadow-sm">
+      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center">
-          <Link href="/home" className="inline-flex items-center text-forest-500">
-            <ArrowLeft className="mr-2 h-5 w-5" />
-            Back
-          </Link>
+          <BackButton />
           <h1 className="font-medium ml-4">Post</h1>
         </div>
       </header>
@@ -95,28 +92,21 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             <CardHeader className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Link href={`/friend/${mockPost.user.id}`}>
-                    {mockPost.user.profilePicture ? (
-                      <Image
-                        src={mockPost.user.profilePicture || "/placeholder.svg"}
-                        alt={mockPost.user.name}
-                        width={40}
-                        height={40}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                        <User className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    )}
-                  </Link>
+                  {mockPost.user.profilePicture ? (
+                    <Image
+                      src={mockPost.user.profilePicture || "/placeholder.svg"}
+                      alt={mockPost.user.name}
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <User className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )}
                   <div>
-                    <Link
-                      href={`/friend/${mockPost.user.id}`}
-                      className="font-medium hover:text-forest-500 transition-colors"
-                    >
-                      {mockPost.user.name}
-                    </Link>
+                    <div className="font-medium">{mockPost.user.name}</div>
                     <div className="text-xs text-muted-foreground">{mockPost.timestamp}</div>
                   </div>
                 </div>
@@ -152,29 +142,22 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             <div className="space-y-4">
               {mockPost.comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3">
-                  <Link href={`/friend/${comment.user.id}`} className="flex-shrink-0">
-                    {comment.user.profilePicture ? (
-                      <Image
-                        src={comment.user.profilePicture || "/placeholder.svg"}
-                        alt={comment.user.name}
-                        width={32}
-                        height={32}
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                        <User className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                    )}
-                  </Link>
+                  {comment.user.profilePicture ? (
+                    <Image
+                      src={comment.user.profilePicture || "/placeholder.svg"}
+                      alt={comment.user.name}
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  )}
                   <div className="flex-1">
                     <div className="bg-muted p-3 rounded-lg">
-                      <Link
-                        href={`/friend/${comment.user.id}`}
-                        className="font-medium text-sm hover:text-forest-500 transition-colors"
-                      >
-                        {comment.user.name}
-                      </Link>
+                      <div className="font-medium text-sm">{comment.user.name}</div>
                       <p className="text-sm">{comment.text}</p>
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">{comment.timestamp}</div>
@@ -185,7 +168,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </main>
-      <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 p-4 z-20">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-20">
         <div className="w-full max-w-lg mx-auto flex items-center gap-2">
           <Input placeholder="Add a comment..." className="flex-1" />
           <Button size="icon" className="bg-forest-500 hover:bg-forest-600">

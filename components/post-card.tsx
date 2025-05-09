@@ -15,7 +15,7 @@ interface PostProps {
     timestamp: string
     content: {
       text: string
-      image: string
+      image?: string | null
     }
     commentCount: number
     isTemporary: boolean
@@ -24,30 +24,29 @@ interface PostProps {
 }
 
 export default function PostCard({ post }: PostProps) {
+  // Determine if this is a text-only post
+  const isTextOnly = !post.content.image
+
   return (
     <Card className={`overflow-hidden ${post.isTemporary ? "border-forest-200 border-2" : ""}`}>
       <CardHeader className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href={`/friend/${post.user.id}`} className="block">
-              {post.user.profilePicture ? (
-                <Image
-                  src={post.user.profilePicture || "/placeholder.svg"}
-                  alt={post.user.name}
-                  width={40}
-                  height={40}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                  <User className="w-5 h-5 text-muted-foreground" />
-                </div>
-              )}
-            </Link>
+            {post.user.profilePicture ? (
+              <Image
+                src={post.user.profilePicture || "/placeholder.svg"}
+                alt={post.user.name}
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <User className="w-5 h-5 text-muted-foreground" />
+              </div>
+            )}
             <div>
-              <Link href={`/friend/${post.user.id}`} className="font-medium hover:text-forest-500 transition-colors">
-                {post.user.name}
-              </Link>
+              <div className="font-medium">{post.user.name}</div>
               <div className="text-xs text-muted-foreground">{post.timestamp}</div>
             </div>
           </div>
@@ -71,7 +70,7 @@ export default function PostCard({ post }: PostProps) {
             className="w-full h-auto"
           />
         )}
-        <div className="p-4">
+        <div className={`p-4 ${isTextOnly && post.content.text.length > 100 ? "text-lg" : ""}`}>
           <p>{post.content.text}</p>
         </div>
       </CardContent>

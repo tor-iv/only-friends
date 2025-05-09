@@ -1,30 +1,122 @@
-# App from markdown
+# Only Friends - Social Media Frontend
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+Only Friends is a modern social media platform designed to help users connect with friends, share moments, and discover new content. This frontend application provides a clean, intuitive user interface for a social networking experience.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/vcox484-gmailcoms-projects/v0-app-from-markdown)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/C5OuZP4fR6t)
+## Features
 
-## Overview
+### Authentication & User Management
+- User login with phone number verification
+- Profile creation and customization
+- Password recovery
+- Account settings management
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+### Social Connections
+- Friend discovery and management
+- Profile viewing
+- Friend requests
+- Contact synchronization
 
-## Deployment
+### Content Sharing
+- Post creation with images
+- Story sharing
+- Feed browsing
+- Post interactions (likes, comments)
 
-Your project is live at:
+### User Experience
+- Notifications
+- Search functionality for finding friends and profiles
+- Dark/light mode support
+- Mobile-first responsive design
 
-**[https://vercel.com/vcox484-gmailcoms-projects/v0-app-from-markdown](https://vercel.com/vcox484-gmailcoms-projects/v0-app-from-markdown)**
+## Tech Stack
 
-## Build your app
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS
+- **UI Components**: Shadcn UI
+- **Icons**: Lucide React
+- **Authentication**: Custom phone verification system
+- **State Management**: React Context API
 
-Continue building your app on:
+## Getting Started
 
-**[https://v0.dev/chat/projects/C5OuZP4fR6t](https://v0.dev/chat/projects/C5OuZP4fR6t)**
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
 
-## How It Works
+### Installation
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+1. Clone the repository
+\`\`\`bash
+git clone https://github.com/yourusername/only-friends.git
+cd only-friends
+\`\`\`
+
+2. Install dependencies
+\`\`\`bash
+npm install
+# or
+yarn install
+\`\`\`
+
+3. Set up environment variables
+\`\`\`bash
+cp .env.local.example .env.local
+# Edit .env.local with your configuration
+\`\`\`
+
+4. Start the development server
+\`\`\`bash
+npm run dev
+# or
+yarn dev
+\`\`\`
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Project Structure
+
+\`\`\`
+only-friends/
+├── app/                  # Next.js App Router pages
+│   ├── api/              # API routes
+│   ├── auth/             # Authentication pages
+│   ├── home/             # Home feed
+│   ├── profile/          # User profile
+│   ├── search/           # Search functionality
+│   └── ...               # Other pages
+├── components/           # Reusable UI components
+│   ├── ui/               # Base UI components
+│   └── ...               # Feature-specific components
+├── lib/                  # Utility functions and services
+├── public/               # Static assets
+└── ...                   # Configuration files
+\`\`\`
+
+## Usage
+
+### Navigating the App
+
+1. **Login**: Start by logging in with your phone number
+2. **Home Feed**: Browse posts from friends
+3. **Search**: Find friends and other users by name or username
+4. **Create**: Share new posts or stories
+5. **Profile**: View and edit your profile
+
+### Key Features
+
+- **Stories**: Temporary content that disappears after 24 hours
+- **Friend Management**: Add, remove, and view friends
+- **Search**: Find users by name, username, or bio
+- **Notifications**: Stay updated on friend requests and interactions
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

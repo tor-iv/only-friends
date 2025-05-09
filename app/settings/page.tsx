@@ -1,20 +1,11 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
 import { Bell, HelpCircle, Info, Lock, LogOut, User, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { useAuth } from "@/context/auth-context"
 
 export default function SettingsPage() {
-  const { signOut } = useAuth()
-
-  const handleSignOut = async () => {
-    await signOut()
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-background border-b p-4 shadow-sm">
+      <header className="sticky top-0 z-10 bg-background border-b p-4">
         <div className="w-full max-w-lg mx-auto flex items-center">
           <Link href="/profile" className="inline-flex items-center text-forest-500 dark:text-cream-300">
             <ArrowLeft className="mr-2 h-5 w-5" />
@@ -72,9 +63,11 @@ export default function SettingsPage() {
           </div>
 
           <div className="pt-6 border-t">
-            <Button variant="destructive" className="w-full" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
+            <Button variant="destructive" className="w-full" asChild>
+              <Link href="/">
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Link>
             </Button>
           </div>
         </div>

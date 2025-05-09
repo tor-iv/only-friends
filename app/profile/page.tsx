@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Settings, User, Search, UserPlus } from "lucide-react"
+import { Settings, User, Search } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import BottomNavigation from "@/components/bottom-navigation"
@@ -24,7 +24,7 @@ const mockProfile = {
 export default function ProfilePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-background border-b p-4 shadow-sm">
+      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center justify-between">
           <h1 className="font-serif text-2xl font-bold text-forest-500">Profile</h1>
           <div className="flex items-center gap-2">
@@ -65,15 +65,9 @@ export default function ProfilePage() {
 
             <p className="text-sm text-muted-foreground mb-4 max-w-xs">{mockProfile.bio}</p>
 
-            <div className="flex items-center gap-4">
-              <Link href="/friends" className="text-sm font-medium text-forest-500">
-                {mockProfile.friendsCount} Friends
-              </Link>
-              <Link href="/add-friends" className="text-sm font-medium text-forest-500 flex items-center gap-1">
-                <UserPlus className="h-4 w-4" />
-                Invite Friends
-              </Link>
-            </div>
+            <Link href="/friends" className="text-sm font-medium text-forest-500">
+              {mockProfile.friendsCount} Friends
+            </Link>
           </div>
 
           <Tabs defaultValue="posts">

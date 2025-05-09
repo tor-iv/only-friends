@@ -46,8 +46,8 @@ const mockPosts = [
     },
     timestamp: "2 days ago",
     content: {
-      text: "My new home office setup is finally complete!",
-      image: "/placeholder.svg?height=400&width=600",
+      text: "Just had the most thought-provoking conversation about the future of technology and its impact on society. It's fascinating to consider how AI, blockchain, and other emerging technologies will reshape our world in the coming decades. What do you all think about the pace of technological change?",
+      image: null,
     },
     commentCount: 8,
     isTemporary: false,
@@ -83,12 +83,27 @@ const mockPosts = [
     commentCount: 24,
     isTemporary: false,
   },
+  {
+    id: 6,
+    user: {
+      id: 2,
+      name: "Jamie Smith",
+      profilePicture: "/placeholder.svg?height=40&width=40",
+    },
+    timestamp: "3 hours ago",
+    content: {
+      text: "Sometimes the simplest moments are the most meaningful. Grateful for this beautiful day and the amazing people in my life.",
+      image: null,
+    },
+    commentCount: 7,
+    isTemporary: false,
+  },
 ]
 
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-background border-b p-4 shadow-sm">
+      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center justify-between">
           <h1 className="font-serif text-2xl font-bold text-forest-500">Only Friends</h1>
           <div className="flex items-center gap-2">

@@ -29,9 +29,12 @@ export default function CreatePostPage() {
     setImagePreview(null)
   }
 
+  // Check if the post is valid - either has text or an image
+  const isValidPost = caption.trim().length > 0 || imagePreview !== null
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-black border-b border-gray-800 p-4 shadow-sm">
+      <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
         <div className="w-full max-w-lg mx-auto flex items-center justify-between">
           <Link href="/home" className="inline-flex items-center text-forest-500">
             <ArrowLeft className="mr-2 h-5 w-5" />
@@ -74,8 +77,8 @@ export default function CreatePostPage() {
               <div className="border-2 border-dashed border-muted rounded-lg p-8 text-center">
                 <label className="cursor-pointer flex flex-col items-center">
                   <ImageIcon className="h-10 w-10 text-muted-foreground mb-2" />
-                  <span className="text-muted-foreground mb-2">Add a photo to your post</span>
-                  <Button variant="outline" size="sm">
+                  <span className="text-muted-foreground mb-2">Add a photo to your post (optional)</span>
+                  <Button type="button" variant="outline" size="sm">
                     Upload Image
                   </Button>
                   <input type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
@@ -100,7 +103,7 @@ export default function CreatePostPage() {
           <Button
             className={`w-full ${isTemporary ? "bg-forest-400" : "bg-forest-500"} hover:bg-forest-600 text-cream-100`}
             size="lg"
-            disabled={!caption.trim() && !imagePreview}
+            disabled={!isValidPost}
             asChild
           >
             <Link href="/home">Post</Link>
