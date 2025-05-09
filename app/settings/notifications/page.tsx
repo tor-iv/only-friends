@@ -1,18 +1,19 @@
 "use client"
 
 import type React from "react"
-
 import { Button } from "@/components/ui/button"
-import { Save, Bell, MessageSquare, Heart, UserPlus } from "lucide-react"
+import { Save, Bell, MessageSquare, Heart, UserPlus, Calendar } from "lucide-react"
 import { useState } from "react"
 import BackButton from "@/components/back-button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function NotificationPreferencesPage() {
   const [pushEnabled, setPushEnabled] = useState(true)
   const [emailEnabled, setEmailEnabled] = useState(true)
+  const [birthdayNotifications, setBirthdayNotifications] = useState("day_of")
   const [notifications, setNotifications] = useState({
     newMessages: true,
     friendRequests: true,
@@ -21,6 +22,7 @@ export default function NotificationPreferencesPage() {
     mentions: true,
     friendActivity: false,
     promotions: false,
+    birthdays: true,
   })
 
   const handleNotificationChange = (key: keyof typeof notifications) => {
@@ -77,7 +79,45 @@ export default function NotificationPreferencesPage() {
               <Separator />
 
               <div className="space-y-4">
-                <h2 className="text-lg font-medium">Notification Types</h2>
+                <h2 className="text-lg font-medium flex items-center">
+                  <Calendar className="h-5 w-5 mr-2 text-forest-500" />
+                  Birthday Notifications
+                </h2>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Calendar className="h-5 w-5 mr-3 text-forest-500" />
+                    <Label htmlFor="birthday-notifications">Friend birthdays</Label>
+                  </div>
+                  <Switch
+                    id="birthday-notifications"
+                    checked={notifications.birthdays}
+                    onCheckedChange={() => handleNotificationChange("birthdays")}
+                  />
+                </div>
+
+                {notifications.birthdays && (
+                  <div className="space-y-2 ml-8">
+                    <Label htmlFor="birthday-timing">When to notify you</Label>
+                    <Select value={birthdayNotifications} onValueChange={setBirthdayNotifications}>
+                      <SelectTrigger id="birthday-timing">
+                        <SelectValue placeholder="Select when to receive notifications" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="week_before">One week before</SelectItem>
+                        <SelectItem value="day_before">One day before</SelectItem>
+                        <SelectItem value="day_of">On the day</SelectItem>
+                        <SelectItem value="all">All of the above</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <h2 className="text-lg font-medium">Other Notification Types</h2>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">

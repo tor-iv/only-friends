@@ -1,120 +1,186 @@
-# Only Friends - Social Media Frontend
+# Only Friends - Technical Documentation
 
-Only Friends is a modern social media platform designed to help users connect with friends, share moments, and discover new content. This frontend application provides a clean, intuitive user interface for a social networking experience.
+## Overview
 
-## Features
-
-### Authentication & User Management
-- User login with phone number verification
-- Profile creation and customization
-- Password recovery
-- Account settings management
-
-### Social Connections
-- Friend discovery and management
-- Profile viewing
-- Friend requests
-- Contact synchronization
-
-### Content Sharing
-- Post creation with images
-- Story sharing
-- Feed browsing
-- Post interactions (likes, comments)
-
-### User Experience
-- Notifications
-- Search functionality for finding friends and profiles
-- Dark/light mode support
-- Mobile-first responsive design
+Only Friends is a private social media platform built with Next.js that focuses on genuine connections between real friends. This application uses modern web technologies to create a mobile-first social experience where users connect via phone numbers, share posts and stories, and communicate through direct messages.
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 14+ (App Router)
+- **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **UI Components**: Shadcn UI
-- **Icons**: Lucide React
-- **Authentication**: Custom phone verification system
+- **Authentication**: Phone number verification with OTP
 - **State Management**: React Context API
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-
-### Installation
-
-1. Clone the repository
-\`\`\`bash
-git clone https://github.com/yourusername/only-friends.git
-cd only-friends
-\`\`\`
-
-2. Install dependencies
-\`\`\`bash
-npm install
-# or
-yarn install
-\`\`\`
-
-3. Set up environment variables
-\`\`\`bash
-cp .env.local.example .env.local
-# Edit .env.local with your configuration
-\`\`\`
-
-4. Start the development server
-\`\`\`bash
-npm run dev
-# or
-yarn dev
-\`\`\`
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+- **UI Components**: Custom components with Tailwind
+- **Icons**: Lucide React
+- **Routing**: Next.js App Router
 
 ## Project Structure
 
 \`\`\`
 only-friends/
-├── app/                  # Next.js App Router pages
-│   ├── api/              # API routes
-│   ├── auth/             # Authentication pages
-│   ├── home/             # Home feed
-│   ├── profile/          # User profile
-│   ├── search/           # Search functionality
-│   └── ...               # Other pages
-├── components/           # Reusable UI components
-│   ├── ui/               # Base UI components
-│   └── ...               # Feature-specific components
-├── lib/                  # Utility functions and services
-├── public/               # Static assets
-└── ...                   # Configuration files
+├── app/                    # Next.js App Router pages
+│   ├── api/                # API routes
+│   ├── create-post/        # Post creation
+│   ├── create-profile/     # Profile setup
+│   ├── create-story/       # Story creation
+│   ├── friend/[id]/        # Friend profile view
+│   ├── friends/            # Friends list
+│   ├── home/               # Main feed
+│   ├── login/              # Authentication
+│   ├── messages/           # Direct messages
+│   ├── notifications/      # User notifications
+│   ├── post/[id]/          # Post detail view
+│   ├── profile/            # User profile
+│   ├── search/             # Search functionality
+│   ├── settings/            # User settings
+│   ├── story/[id]/         # Story view
+│   ├── verify/             # OTP verification
+│   ├── layout.tsx          # Root layout
+│   └── not-found.tsx       # 404 page
+├── components/             # Reusable UI components
+│   ├── ui/                 # Base UI components
+│   └── ...                 # Feature-specific components
+├── context/                # React Context providers
+├── hooks/                  # Custom React hooks
+├── lib/                    # Utility functions
+├── public/                 # Static assets
+├── styles/                 # Additional styles
+├── types/                  # TypeScript type definitions
+├── next.config.js          # Next.js configuration
+├── tailwind.config.js      # Tailwind CSS configuration
+├── tsconfig.json           # TypeScript configuration
+└── package.json            # Project dependencies
 \`\`\`
 
-## Usage
+## Getting Started
 
-### Navigating the App
+### Prerequisites
 
-1. **Login**: Start by logging in with your phone number
-2. **Home Feed**: Browse posts from friends
-3. **Search**: Find friends and other users by name or username
-4. **Create**: Share new posts or stories
-5. **Profile**: View and edit your profile
+- Node.js 18.0.0 or later
+- npm or yarn or pnpm
 
-### Key Features
+### Installation
 
-- **Stories**: Temporary content that disappears after 24 hours
-- **Friend Management**: Add, remove, and view friends
-- **Search**: Find users by name, username, or bio
-- **Notifications**: Stay updated on friend requests and interactions
+1. Clone the repository:
+   \`\`\`bash
+   git clone https://github.com/your-username/only-friends.git
+   cd only-friends
+   \`\`\`
+
+2. Install dependencies:
+   \`\`\`bash
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
+   \`\`\`
+
+3. Set up environment variables:
+   \`\`\`bash
+   cp .env.local.example .env.local
+   \`\`\`
+
+   Edit `.env.local` with your configuration:
+   \`\`\`
+   TWILIO_ACCOUNT_SID=your_twilio_account_sid
+   TWILIO_AUTH_TOKEN=your_twilio_auth_token
+   TWILIO_PHONE_NUMBER=your_twilio_phone_number
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   \`\`\`
+
+4. Start the development server:
+   \`\`\`bash
+   npm run dev
+   # or
+   yarn dev
+   # or
+   pnpm dev
+   \`\`\`
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Key Features and Implementation Details
+
+### Authentication Flow
+
+The authentication system uses phone number verification with OTP:
+
+1. User enters their phone number on the login page
+2. An OTP is sent to their phone via Twilio
+3. User verifies the OTP to authenticate
+4. New users are directed to create a profile
+5. Returning users are directed to the home feed
+
+Implementation files:
+- `app/login/page.tsx` - Login page
+- `app/verify/page.tsx` - OTP verification
+- `lib/twilio-service.ts` - Twilio integration
+- `context/auth-context.tsx` - Authentication state management
+
+### Navigation System
+
+The app uses a custom navigation system with history tracking:
+
+1. `components/navigation-tracker.tsx` - Tracks navigation history
+2. `hooks/use-navigation-history.ts` - Custom hook for navigation
+3. `components/back-button.tsx` - Smart back button component
+
+### Direct Messaging
+
+The direct messaging system allows users to chat with friends:
+
+1. `app/messages/page.tsx` - Messages list
+2. `app/messages/[id]/page.tsx` - Conversation view
+3. `app/messages/new/page.tsx` - New message creation
+4. `components/message-bubble.tsx` - Message display component
+5. `components/message-input.tsx` - Message input component
+
+## Deployment
+
+### Vercel Deployment
+
+1. Push your code to a GitHub repository
+2. Import the project in Vercel
+3. Configure environment variables
+4. Deploy
+
+### Environment Variables for Production
+
+Ensure these environment variables are set in your production environment:
+
+\`\`\`
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_phone_number
+NEXT_PUBLIC_SITE_URL=https://your-production-url.com
+\`\`\`
+
+## Common Issues and Troubleshooting
+
+### 404 Page Rendering Issues
+
+If you encounter issues with the 404 page during build:
+
+1. Ensure all components using `useSearchParams()` are wrapped in a Suspense boundary
+2. Check that the `not-found.tsx` file is properly implemented
+3. Verify that no components in the layout are using client-side hooks without proper boundaries
+
+### Authentication Issues
+
+If users are having trouble with authentication:
+
+1. Check Twilio credentials and quota
+2. Verify the phone number format (international format recommended)
+3. Check the verification code storage and retrieval logic
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add some amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
 ## License

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Settings, User, Search } from "lucide-react"
+import { Settings, User, Search, Calendar } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import BottomNavigation from "@/components/bottom-navigation"
@@ -11,6 +11,8 @@ const mockProfile = {
   profilePicture: "/placeholder.svg?height=120&width=120",
   bio: "Nature lover, hiker, and amateur photographer. Always seeking new adventures!",
   friendsCount: 12,
+  birthday: new Date(1990, 0, 15), // January 15, 1990
+  birthdayVisibility: "friends", // 'friends', 'close_friends', or 'nobody'
   posts: [
     { id: 1, image: "/placeholder.svg?height=300&width=300" },
     { id: 2, image: "/placeholder.svg?height=300&width=300" },
@@ -22,6 +24,18 @@ const mockProfile = {
 }
 
 export default function ProfilePage() {
+  // Function to format birthday based on privacy settings
+  const formatBirthday = () => {
+    if (mockProfile.birthdayVisibility === "nobody") {
+      return null
+    }
+
+    // Only show month and day, not year
+    return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" }).format(mockProfile.birthday)
+  }
+
+  const formattedBirthday = formatBirthday()
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="sticky top-0 z-10 bg-white border-b p-4 shadow-sm">
@@ -63,7 +77,14 @@ export default function ProfilePage() {
 
             <h2 className="font-serif text-xl font-bold mb-1">{mockProfile.name}</h2>
 
-            <p className="text-sm text-muted-foreground mb-4 max-w-xs">{mockProfile.bio}</p>
+            <p className="text-sm text-muted-foreground mb-2 max-w-xs">{mockProfile.bio}</p>
+
+            {formattedBirthday && (
+              <p className="text-sm text-forest-500 flex items-center mb-2">
+                <Calendar className="h-4 w-4 mr-1" />
+                {formattedBirthday}
+              </p>
+            )}
 
             <Link href="/friends" className="text-sm font-medium text-forest-500">
               {mockProfile.friendsCount} Friends

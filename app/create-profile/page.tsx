@@ -10,8 +10,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { useState } from "react"
 
 export default function CreateProfilePage() {
+  const [birthday, setBirthday] = useState<Date | undefined>(undefined)
+
   return (
     <div className="min-h-screen flex flex-col items-center p-6 leaf-pattern">
       <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center flex-grow">
@@ -49,7 +52,30 @@ export default function CreateProfilePage() {
 
               <div className="space-y-2">
                 <Label htmlFor="birthday">Birthday</Label>
-                <BirthdayPicker />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="birthday"
+                      variant="outline"
+                      className={cn("w-full justify-start text-left font-normal", !birthday && "text-muted-foreground")}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {birthday ? format(birthday, "PPP") : <span>Select your birthday</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={birthday}
+                      onSelect={setBirthday}
+                      initialFocus
+                      disabled={(date) => date > new Date() || date < new Date(new Date().getFullYear() - 100, 0, 1)}
+                      captionLayout="dropdown-buttons"
+                      fromYear={new Date().getFullYear() - 100}
+                      toYear={new Date().getFullYear()}
+                    />
+                  </PopoverContent>
+                </Popover>
                 <p className="text-xs text-muted-foreground">
                   Your birthday will be shared with friends on your special day.
                 </p>
@@ -63,36 +89,5 @@ export default function CreateProfilePage() {
         </div>
       </div>
     </div>
-  )
-}
-
-function BirthdayPicker() {
-  // In a real app, this would use useState
-  const date = new Date(1990, 0, 1)
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
-        >
-          <Calendar className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span>Pick a date</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <CalendarComponent
-          mode="single"
-          selected={date}
-          onSelect={() => {}}
-          initialFocus
-          disabled={(date) => date > new Date() || date < new Date(1900, 0, 1)}
-          captionLayout="dropdown-buttons"
-          fromYear={1900}
-          toYear={new Date().getFullYear()}
-        />
-      </PopoverContent>
-    </Popover>
   )
 }

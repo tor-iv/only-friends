@@ -1,15 +1,17 @@
 "use client"
 
 import type React from "react"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Save } from "lucide-react"
+import { Calendar, Save } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import BackButton from "@/components/back-button"
 import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { format } from "date-fns"
 
 export default function AccountSettingsPage() {
   const [formData, setFormData] = useState({
@@ -19,6 +21,7 @@ export default function AccountSettingsPage() {
     phone: "+1 (555) 123-4567",
     bio: "Nature lover, hiking enthusiast, and amateur photographer. Always looking for the next adventure!",
   })
+  const [birthday, setBirthday] = useState<Date>(new Date(1990, 0, 15))
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -89,6 +92,33 @@ export default function AccountSettingsPage() {
                   onChange={handleChange}
                   placeholder="Your phone number"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="birthday">Birthday</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button id="birthday" variant="outline" className="w-full justify-start text-left font-normal">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {format(birthday, "PPP")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={birthday}
+                      onSelect={(date) => date && setBirthday(date)}
+                      initialFocus
+                      disabled={(date) => date > new Date() || date < new Date(new Date().getFullYear() - 100, 0, 1)}
+                      captionLayout="dropdown-buttons"
+                      fromYear={new Date().getFullYear() - 100}
+                      toYear={new Date().getFullYear()}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <p className="text-xs text-muted-foreground">
+                  Your birthday visibility can be controlled in Privacy Settings.
+                </p>
               </div>
 
               <div className="space-y-2">
