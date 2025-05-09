@@ -11,9 +11,10 @@ interface BackButtonProps {
   className?: string
   label?: string
   fallbackPath?: string
+  children?: React.ReactNode
 }
 
-export default function BackButton({ className = "", label = "Back", fallbackPath = "/home" }: BackButtonProps) {
+export default function BackButton({ className = "", label, fallbackPath = "/home", children }: BackButtonProps) {
   const { goBack, getPreviousPath } = useNavigationHistory()
   const router = useRouter()
 
@@ -40,7 +41,7 @@ export default function BackButton({ className = "", label = "Back", fallbackPat
       aria-label="Go back"
     >
       <ArrowLeft className="mr-2 h-5 w-5" />
-      {label}
+      {children || label || "Back"}
     </button>
   )
 }
