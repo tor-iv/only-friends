@@ -1,19 +1,11 @@
+import { Suspense } from "react"
+import NotFoundClient from "@/components/not-found-client"
+import NotFoundFallback from "@/components/not-found-fallback"
+
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
-      <div className="mx-auto max-w-md space-y-6">
-        <h1 className="text-4xl font-bold">404</h1>
-        <h2 className="text-2xl font-semibold">Page Not Found</h2>
-        <p>Sorry, we couldn't find the page you're looking for.</p>
-        <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
-          <a href="/home" className="rounded-md border border-gray-300 px-4 py-2 hover:bg-gray-100">
-            Go Back
-          </a>
-          <a href="/home" className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
-            Go Home
-          </a>
-        </div>
-      </div>
-    </div>
+    <Suspense fallback={<NotFoundFallback />}>
+      <NotFoundClient />
+    </Suspense>
   )
 }
