@@ -3,7 +3,7 @@
 import Link from "next/link"
 import type React from "react"
 import { Button } from "@/components/ui/button"
-import { Save, Lock, Shield, MessageSquare, Calendar, MapPin } from "lucide-react"
+import { Save, Lock, Shield, MessageSquare, Calendar } from "lucide-react"
 import { useState } from "react"
 import BackButton from "@/components/back-button"
 import { Switch } from "@/components/ui/switch"
@@ -90,31 +90,17 @@ export default function PrivacySettingsPage() {
 
               <div className="space-y-4 pt-4 border-t">
                 <h2 className="text-lg font-medium flex items-center">
-                  <MapPin className="h-5 w-5 mr-2 text-forest-500" />
-                  Location Privacy
+                  <Shield className="h-5 w-5 mr-2 text-forest-500" />
+                  Privacy Controls
                 </h2>
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="location-sharing">Location sharing</Label>
-                    <p className="text-sm text-muted-foreground">Allow friends to see when you're nearby</p>
+                    <p className="text-sm text-muted-foreground">Allow friends to see your location</p>
                   </div>
                   <Switch id="location-sharing" checked={locationSharing} onCheckedChange={setLocationSharing} />
                 </div>
-
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href="/settings/location">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Manage Location Settings
-                  </Link>
-                </Button>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t">
-                <h2 className="text-lg font-medium flex items-center">
-                  <Shield className="h-5 w-5 mr-2 text-forest-500" />
-                  Other Privacy Controls
-                </h2>
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">

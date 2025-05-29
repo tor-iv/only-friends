@@ -3,7 +3,6 @@ import Link from "next/link"
 import { Bell, MessageSquare, Search } from "lucide-react"
 import PostCard from "@/components/post-card"
 import BottomNavigation from "@/components/bottom-navigation"
-import NearbyFriendsDropdown from "@/components/nearby-friends-dropdown"
 
 // Mock data for posts
 const mockPosts = [
@@ -108,7 +107,6 @@ export default function HomePage() {
         <div className="w-full max-w-lg mx-auto flex items-center justify-between">
           <h1 className="font-serif text-2xl font-bold text-forest-500">Only Friends</h1>
           <div className="flex items-center gap-2">
-            <NearbyFriendsDropdown />
             <Button variant="ghost" size="icon" asChild>
               <Link href="/search">
                 <Search className="h-5 w-5" />
