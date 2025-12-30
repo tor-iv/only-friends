@@ -1,0 +1,63 @@
+# Universal Development Rules
+
+These rules apply to all projects regardless of specific technology stack or purpose.
+
+## Simplicity and Maintainability
+
+-   Follow the KISS principle - keep implementations as simple as possible
+-   Avoid premature optimization and over-engineering
+-   Prefer readable code over clever solutions
+-   Break complex problems into smaller, manageable parts
+-   Use established patterns and libraries rather than reinventing solutions
+-   Regularly refactor code to reduce complexity
+-   Minimize dependencies when possible
+
+## Development Process and Documentation
+
+-   Follow a hypothesis-driven development approach:
+    -   Document the original issue or requirement clearly
+    -   Formulate a specific hypothesis about the solution
+    -   Make minimal necessary changes to test the hypothesis
+    -   Record the results and observations
+    -   Document whether the hypothesis was confirmed or rejected
+-   Maintain a development log that captures:
+    -   Context of the problem being solved
+    -   Reasoning behind design decisions
+    -   Alternative approaches considered and why they were rejected
+    -   Unexpected challenges encountered and how they were overcome
+-   Keep commit messages and pull request descriptions aligned with this process
+-   Document learnings that might benefit other team members
+-   Update documentation to reflect new understanding of the system
+
+## Code Quality and Standards
+
+-   Use consistent code formatting with Prettier
+-   Maintain ESLint configuration with appropriate rules
+-   Follow semantic versioning for all packages and releases
+-   Document all public APIs and interfaces
+-   Use meaningful variable and function names that describe purpose
+-   Keep functions small and focused on a single responsibility
+-   Limit function parameters to improve readability and testability
+-   Use TypeScript for type safety across all JavaScript projects
+-   Maintain 80% or higher test coverage for critical code paths
+-   Document complex algorithms with comments explaining the approach
+-   Avoid code duplication through proper abstraction
+-   Use async/await over Promise chains for asynchronous code
+-   Implement proper error handling for all async operations
+-   Follow accessibility (a11y) best practices for all user interfaces
+
+## Git and Version Control Practices
+
+-   Write clear, descriptive commit messages following conventional commits format
+-   Create feature branches for all new development
+-   Require pull/merge requests for all changes to main branches
+-   Enforce code reviews before merging
+-   Keep pull/merge requests small and focused on a single feature or fix
+-   Maintain a clean commit history through appropriate rebasing
+-   Tag all releases with appropriate version numbers
+-   Document breaking changes clearly in commit messages and release notes
+-   Run CI/CD pipelines on all pull/merge requests
+-   Ensure all tests pass before merging
+-   Keep dependencies updated regularly with security patches
+-   Lock dependencies to specific versions to ensure reproducible builds
+-   Document environment setup requirements in README.md

@@ -1,0 +1,78 @@
+# Only Friends Project Guidelines
+
+## Additional Rule Files
+
+-   Project-specific rules: .builder-toolbox/.rules-project
+-   Universal rules: .builder-toolbox/.rules-universal
+
+
+## Documentation Requirements
+
+-   Update relevant documentation in /docs when modifying features
+-   Keep README.md in sync with new capabilities and setup instructions
+-   Maintain changelog entries in CHANGELOG.md
+-   Document UI components with usage examples
+-   Create user flow documentation for social features (friends, messaging, posts)
+-   Document authentication and privacy-related features thoroughly
+
+## Architecture Decision Records
+
+Create ADRs in /docs/adr for:
+
+-   Frontend state management changes
+-   Authentication strategy changes
+-   Social feature implementation patterns
+-   Performance optimization strategies
+-   Mobile responsiveness approaches
+-   Third-party integrations (location services, notifications)
+    Follow template in /docs/adr/template.md
+
+## Code Style & Patterns
+
+-   Follow Next.js app router conventions for page organization
+-   Use TypeScript for all new code
+-   Implement React Server Components where appropriate
+-   Create reusable UI components in /components/ui
+-   Place feature-specific components in /components
+-   Use custom hooks in /hooks for shared logic
+-   Follow Tailwind CSS class naming conventions
+-   Implement responsive design using Tailwind breakpoints
+-   Use SWR or React Query for data fetching and caching
+-   Implement proper loading states for async operations
+-   Follow error handling patterns with appropriate user feedback
+
+## State Management
+
+-   Use React Context for global state when appropriate
+-   Implement proper data fetching strategies with SWR/React Query
+-   Maintain clear separation between UI state and server state
+-   Use URL parameters for shareable state
+-   Implement optimistic UI updates for social interactions
+
+## Testing Standards
+
+-   Unit tests required for custom hooks and utility functions
+-   Component tests for UI components
+-   Integration tests for user flows (authentication, posting, messaging)
+-   E2E tests for critical social features
+-   Accessibility testing for all user-facing components
+-   Mobile responsive testing across different viewport sizes
+-   Performance testing for image loading and social feed rendering
+
+## Performance Guidelines
+
+-   Optimize image loading with Next.js Image component
+-   Implement proper code splitting and lazy loading
+-   Use incremental static regeneration where appropriate
+-   Optimize for Core Web Vitals metrics
+-   Implement proper caching strategies for social content
+-   Monitor and optimize bundle size
+
+## Security & Privacy
+
+-   Follow best practices for authentication implementation
+-   Implement proper authorization checks for user content
+-   Sanitize user-generated content
+-   Follow privacy-by-design principles for location and contact features
+-   Implement proper data retention policies
+-   Regular security audits for authentication flows

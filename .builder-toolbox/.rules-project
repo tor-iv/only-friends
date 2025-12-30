@@ -1,0 +1,75 @@
+# Project-Specific Development Rules
+
+These rules apply specifically to social networking and user-centric applications.
+
+## Social Media Feature Development
+
+-   Implement proper content moderation capabilities for user-generated content
+-   Design features with both online and offline states in mind
+-   Build social interactions with optimistic UI updates for better user experience
+-   Implement proper pagination and infinite scrolling for content feeds
+-   Design notification systems with user preferences and control
+-   Create clear user feedback for all social interactions (likes, comments, etc.)
+-   Implement proper error states for failed social interactions
+-   Design with mobile-first approach for all social features
+-   Implement proper image optimization and lazy loading for media-heavy feeds
+-   Create consistent interaction patterns across similar features
+-   Design with internationalization and localization in mind
+-   Implement proper analytics tracking for feature usage and engagement
+-   Create comprehensive user onboarding flows for new features
+
+## User Privacy and Data Protection
+
+-   Follow data minimization principles - collect only necessary data
+-   Implement proper data retention policies and automated cleanup
+-   Create clear privacy settings with granular user control
+-   Design features with "Privacy by Default" approach
+-   Implement proper data export functionality for user data
+-   Create clear consent flows for sensitive permissions (location, contacts, etc.)
+-   Implement proper data encryption for sensitive user information
+-   Design with GDPR, CCPA, and other privacy regulations in mind
+-   Create audit logs for sensitive data access and modifications
+-   Implement proper access controls for user data across the application
+-   Design clear data sharing controls for social features
+-   Create comprehensive privacy documentation for all features
+-   Implement regular privacy impact assessments for new features
+
+# tech stack:
+For a social media app transitioning from v0/Next.js to a more robust architecture with Supabase and Python, here's a solid tech stack:
+Frontend (Keep & Enhance)
+
+Next.js 14+ with App Router - Great choice for SSR, routing, and performance
+TypeScript - Essential for larger codebases
+Tailwind CSS - Perfect for rapid UI development and consistency
+React Query/TanStack Query - For server state management and caching
+Zustand or Redux Toolkit - For client-side state management
+
+Backend (Python)
+
+FastAPI - Excellent for APIs, automatic docs, great performance, and plays well with modern frontend frameworks
+Pydantic - For data validation and serialization (built into FastAPI)
+Celery + Redis - For background tasks (post processing, notifications, etc.)
+Python-socketio - For real-time features (chat, live notifications)
+
+Database & Backend Services
+
+Supabase - PostgreSQL database, authentication, real-time subscriptions, storage
+Supabase Edge Functions - For serverless functions when needed
+Redis - Caching and session storage
+
+Real-time & Communication
+
+Supabase Realtime - For live updates, reactions, comments
+WebSockets (via FastAPI) - For chat features
+Supabase Auth - Handle user authentication and authorization
+
+File Storage & CDN
+
+Supabase Storage - For images, videos, avatars
+Cloudinary or AWS S3 - If you need advanced image/video processing
+
+Deployment
+
+Frontend: Vercel (seamless with Next.js)
+Backend: Railway, Render, or AWS/GCP
+Database: Supabase (managed PostgreSQL)
