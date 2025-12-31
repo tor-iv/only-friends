@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, users, posts, messages, friends, stories
+from routers import auth, users, posts, messages, friends, stories, upload
 from config import settings
 
 app = FastAPI(
@@ -25,6 +25,7 @@ app.include_router(posts.router, prefix="/posts", tags=["posts"])
 app.include_router(messages.router, prefix="/messages", tags=["messages"])
 app.include_router(friends.router, prefix="/friends", tags=["friends"])
 app.include_router(stories.router, prefix="/stories", tags=["stories"])
+app.include_router(upload.router, prefix="/upload", tags=["upload"])
 
 @app.get("/")
 async def root():

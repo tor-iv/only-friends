@@ -17,6 +17,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Button, Avatar } from "../../components/ui";
 import { useAuth } from "../../contexts";
 import { apiClient } from "../../lib/api-client";
+import { uploadImage, UploadProgress } from "../../lib/image-service";
 import { colors } from "../../theme";
 
 const MAX_CONTENT_LENGTH = 2000;
@@ -28,6 +29,8 @@ export function CreatePostScreen() {
   const [content, setContent] = useState("");
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
 
   const canPost = content.trim().length > 0 || imageUri !== null;
   const characterCount = content.length;
@@ -64,17 +67,37 @@ export function CreatePostScreen() {
     if (!canPost || isOverLimit || loading) return;
 
     setLoading(true);
+    let imageUrl: string | undefined;
 
     try {
-      // TODO: Upload image to storage and get URL
-      // For now, we'll just use the local URI as a placeholder
+      // Upload image if present
+      if (imageUri) {
+        setUploading(true);
+        const uploadResult = await uploadImage(
+          imageUri,
+          (progress) => setUploadProgress(progress)
+        );
+
+        if (!uploadResult.success) {
+          Alert.alert("Error", uploadResult.error || "Failed to upload image");
+          setLoading(false);
+          setUploading(false);
+          setUploadProgress(null);
+          return;
+        }
+
+        imageUrl = uploadResult.url;
+        setUploading(false);
+        setUploadProgress(null);
+      }
+
+      // Create post with uploaded image URL
       const result = await apiClient.createPost({
         content: content.trim(),
-        image_url: imageUri ?? undefined,
+        image_url: imageUrl,
       });
 
       if (result.success) {
-        // Go back or navigate to home
         navigation.goBack();
       } else {
         Alert.alert("Error", result.error || "Failed to create post");
@@ -83,6 +106,8 @@ export function CreatePostScreen() {
       Alert.alert("Error", "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+      setUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -178,13 +203,30 @@ export function CreatePostScreen() {
                   style={{ aspectRatio: 1 }}
                   resizeMode="cover"
                 />
-                <TouchableOpacity
-                  onPress={handleRemoveImage}
-                  className="absolute top-2 right-2 bg-black/60 rounded-full p-1"
-                >
-                  <Ionicons name="close" size={20} color="white" />
-                </TouchableOpacity>
+                {!uploading && (
+                  <TouchableOpacity
+                    onPress={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-black/60 rounded-full p-1"
+                  >
+                    <Ionicons name="close" size={20} color="white" />
+                  </TouchableOpacity>
+                )}
               </View>
+
+              {/* Upload progress */}
+              {uploading && uploadProgress && (
+                <View className="mt-3">
+                  <View className="h-2 bg-cream-400 rounded-full overflow-hidden">
+                    <View
+                      className="h-full bg-forest-500"
+                      style={{ width: `${uploadProgress.percentage}%` }}
+                    />
+                  </View>
+                  <Text className="text-xs text-charcoal-300 text-center mt-1">
+                    Uploading... {uploadProgress.percentage}%
+                  </Text>
+                </View>
+              )}
             </View>
           )}
         </ScrollView>

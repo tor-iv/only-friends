@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Button } from "../../components/ui";
 import { apiClient } from "../../lib/api-client";
+import { uploadImage, UploadProgress } from "../../lib/image-service";
 import { colors } from "../../theme";
 
 const { width } = Dimensions.get("window");
@@ -40,6 +41,8 @@ export function CreateStoryScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState(BACKGROUND_COLORS[0]);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
 
   const canPost =
     mode === "text" ? content.trim().length > 0 : imageUri !== null;
@@ -72,11 +75,33 @@ export function CreateStoryScreen() {
     if (!canPost || loading) return;
 
     setLoading(true);
+    let imageUrl: string | undefined;
 
     try {
+      // Upload image if in image mode
+      if (mode === "image" && imageUri) {
+        setUploading(true);
+        const uploadResult = await uploadImage(
+          imageUri,
+          (progress) => setUploadProgress(progress)
+        );
+
+        if (!uploadResult.success) {
+          Alert.alert("Error", uploadResult.error || "Failed to upload image");
+          setLoading(false);
+          setUploading(false);
+          setUploadProgress(null);
+          return;
+        }
+
+        imageUrl = uploadResult.url;
+        setUploading(false);
+        setUploadProgress(null);
+      }
+
       const result = await apiClient.createStory({
         content: mode === "text" ? content.trim() : undefined,
-        image_url: mode === "image" ? imageUri! : undefined,
+        image_url: imageUrl,
         background_color: mode === "text" ? backgroundColor : undefined,
       });
 
@@ -89,6 +114,8 @@ export function CreateStoryScreen() {
       Alert.alert("Error", "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+      setUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -145,11 +172,29 @@ export function CreateStoryScreen() {
         style={{ backgroundColor: mode === "text" ? backgroundColor : "black" }}
       >
         {mode === "image" && imageUri ? (
-          <Image
-            source={{ uri: imageUri }}
-            style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
-          />
+          <View style={{ flex: 1 }}>
+            <Image
+              source={{ uri: imageUri }}
+              style={{ width: "100%", height: "100%" }}
+              resizeMode="cover"
+            />
+            {/* Upload progress overlay */}
+            {uploading && uploadProgress && (
+              <View className="absolute inset-0 bg-black/50 items-center justify-center">
+                <View className="w-3/4">
+                  <View className="h-2 bg-white/30 rounded-full overflow-hidden">
+                    <View
+                      className="h-full bg-white"
+                      style={{ width: `${uploadProgress.percentage}%` }}
+                    />
+                  </View>
+                  <Text className="text-white text-center mt-2 font-sans">
+                    Uploading... {uploadProgress.percentage}%
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
         ) : (
           <View className="flex-1 items-center justify-center px-8">
             <TextInput
