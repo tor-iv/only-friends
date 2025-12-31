@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional, Union
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError
 from passlib.context import CryptContext
 from config import settings
 import uuid
@@ -55,7 +56,7 @@ def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
             return None
             
         return payload
-    except JWTError:
+    except PyJWTError:
         return None
 
 def generate_token_pair(user_id: Union[str, uuid.UUID], phone_number: str) -> dict:
