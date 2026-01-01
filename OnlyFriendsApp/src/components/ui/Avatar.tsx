@@ -6,6 +6,7 @@ type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 interface AvatarProps {
   source?: string | null;
+  imageUrl?: string | null; // Alias for source
   name?: string;
   size?: AvatarSize;
   showOnlineStatus?: boolean;
@@ -30,6 +31,7 @@ function getInitials(name?: string): string {
 
 export function Avatar({
   source,
+  imageUrl,
   name,
   size = "md",
   showOnlineStatus = false,
@@ -38,12 +40,13 @@ export function Avatar({
 }: AvatarProps) {
   const sizeConfig = sizeMap[size];
   const containerSize = sizeConfig.container;
+  const imageSource = source || imageUrl;
 
   return (
     <View className={`relative ${className}`}>
-      {source ? (
+      {imageSource ? (
         <Image
-          source={{ uri: source }}
+          source={{ uri: imageSource }}
           style={{
             width: containerSize,
             height: containerSize,

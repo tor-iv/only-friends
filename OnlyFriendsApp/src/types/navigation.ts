@@ -33,6 +33,7 @@ export type CreateStackParamList = {
 // Profile Stack (nested in tab)
 export type ProfileStackParamList = {
   Profile: undefined;
+  EditProfile: undefined;
   Friends: undefined;
   FriendDetail: { userId: string };
   Messages: undefined;
