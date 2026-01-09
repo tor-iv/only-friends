@@ -1,119 +1,23 @@
 import { secureStorage, STORAGE_KEYS } from "./storage";
+import type {
+  ApiResponse,
+  AuthResponse,
+  RegisterRequest,
+  User,
+  Post,
+  Comment,
+  Story,
+  StoryGroup,
+  CreatePostRequest,
+  CreateStoryRequest,
+  Friend,
+  FriendRequest,
+  Conversation,
+  Message,
+} from "../types";
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8000";
-
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
-
-export interface VerificationRequest {
-  phone_number: string;
-}
-
-export interface VerificationCheck {
-  phone_number: string;
-  code: string;
-}
-
-export interface RegisterRequest {
-  phone_number: string;
-  email?: string;
-  first_name: string;
-  last_name: string;
-  username?: string;
-  password: string;
-}
-
-export interface LoginRequest {
-  phone_number: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  user_id: string;
-  phone_number: string;
-  is_verified: boolean;
-  is_new_user: boolean;
-  access_token?: string;
-  refresh_token?: string;
-  token_type?: string;
-}
-
-export interface User {
-  id: string;
-  phone_number: string;
-  email?: string;
-  first_name: string;
-  last_name: string;
-  username?: string;
-  bio?: string;
-  avatar_url?: string;
-  is_verified: boolean;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Post {
-  id: string;
-  user_id: string;
-  content: string;
-  image_url?: string;
-  is_temporary: boolean;
-  expires_at?: string;
-  likes_count: number;
-  comments_count: number;
-  is_liked: boolean;
-  created_at: string;
-  user: {
-    first_name: string;
-    last_name: string;
-    username?: string;
-    avatar_url?: string;
-  };
-}
-
-export interface Story {
-  id: string;
-  user_id: string;
-  content?: string;
-  image_url?: string;
-  background_color?: string;
-  expires_at: string;
-  created_at: string;
-  user: {
-    first_name: string;
-    last_name: string;
-    avatar_url?: string;
-  };
-}
-
-export interface Message {
-  id: string;
-  sender_id: string;
-  recipient_id: string;
-  content: string;
-  message_type: "text" | "image" | "system";
-  image_url?: string;
-  is_read: boolean;
-  created_at: string;
-}
-
-export interface Conversation {
-  id: string;
-  user: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    avatar_url?: string;
-  };
-  last_message?: Message;
-  unread_count: number;
-}
 
 class ApiClient {
   private baseUrl: string;
@@ -124,6 +28,15 @@ class ApiClient {
 
   private async getAccessToken(): Promise<string | null> {
     return secureStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+  }
+
+  private async getRefreshToken(): Promise<string | null> {
+    return secureStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+  }
+
+  private async setTokens(accessToken: string, refreshToken: string): Promise<void> {
+    await secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+    await secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
   }
 
   private async request<T>(
@@ -161,7 +74,48 @@ class ApiClient {
     }
   }
 
-  // Authentication endpoints
+  private async authenticatedRequest<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
+    const accessToken = await this.getAccessToken();
+
+    if (!accessToken) {
+      return {
+        success: false,
+        error: "Not authenticated",
+      };
+    }
+
+    const result = await this.request<T>(endpoint, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...options.headers,
+      },
+    });
+
+    // Handle token expiration
+    if (!result.success && result.error?.includes("expired")) {
+      const refreshed = await this.refreshToken();
+      if (refreshed.success) {
+        // Retry with new token
+        const newToken = await this.getAccessToken();
+        return this.request<T>(endpoint, {
+          ...options,
+          headers: {
+            Authorization: `Bearer ${newToken}`,
+            ...options.headers,
+          },
+        });
+      }
+    }
+
+    return result;
+  }
+
+  // ============ Auth Endpoints ============
+
   async sendVerificationCode(phoneNumber: string): Promise<ApiResponse> {
     return this.request("/auth/send-verification", {
       method: "POST",
@@ -196,65 +150,86 @@ class ApiClient {
     });
   }
 
-  async refreshToken(refreshToken: string): Promise<ApiResponse<AuthResponse>> {
-    return this.request<AuthResponse>("/auth/refresh", {
+  async refreshToken(): Promise<ApiResponse<AuthResponse>> {
+    const refreshToken = await this.getRefreshToken();
+
+    if (!refreshToken) {
+      return { success: false, error: "No refresh token" };
+    }
+
+    const result = await this.request<AuthResponse>("/auth/refresh", {
       method: "POST",
       body: JSON.stringify({ refresh_token: refreshToken }),
     });
+
+    if (result.success && result.data?.access_token && result.data?.refresh_token) {
+      await this.setTokens(result.data.access_token, result.data.refresh_token);
+    }
+
+    return result;
   }
 
   async getCurrentUser(): Promise<ApiResponse<User>> {
-    const token = await this.getAccessToken();
-    if (!token) {
-      return { success: false, error: "No access token" };
-    }
-    return this.request<User>("/auth/me", {
+    return this.authenticatedRequest<User>("/auth/me", {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     });
   }
 
-  // Authenticated request helper
-  async authenticatedRequest<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
-    const token = await this.getAccessToken();
-    if (!token) {
-      return { success: false, error: "No access token" };
-    }
-    return this.request<T>(endpoint, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...options.headers,
-      },
+  // ============ User Endpoints ============
+
+  async getProfile(): Promise<ApiResponse<User>> {
+    return this.authenticatedRequest<User>("/users/me", {
+      method: "GET",
     });
   }
 
-  // Posts
-  async getPosts(limit = 20, offset = 0): Promise<ApiResponse<Post[]>> {
-    return this.authenticatedRequest<Post[]>(
-      `/posts/?limit=${limit}&offset=${offset}`
-    );
+  async updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
+    return this.authenticatedRequest<User>("/users/me", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
   }
 
-  async getPost(postId: string): Promise<ApiResponse<Post>> {
-    return this.authenticatedRequest<Post>(`/posts/${postId}`);
+  async getUserById(userId: string): Promise<ApiResponse<User>> {
+    return this.authenticatedRequest<User>(`/users/${userId}`, {
+      method: "GET",
+    });
   }
 
-  async createPost(data: {
-    content: string;
-    image_url?: string;
-    is_temporary?: boolean;
-  }): Promise<ApiResponse<Post>> {
+  async searchUsers(query: string): Promise<ApiResponse<User[]>> {
+    return this.authenticatedRequest<User[]>(`/users/search/${encodeURIComponent(query)}`, {
+      method: "GET",
+    });
+  }
+
+  // ============ Posts Endpoints ============
+
+  async getFeed(limit = 20, offset = 0): Promise<ApiResponse<Post[]>> {
+    return this.authenticatedRequest<Post[]>(`/posts/?limit=${limit}&offset=${offset}`, {
+      method: "GET",
+    });
+  }
+
+  async createPost(data: CreatePostRequest): Promise<ApiResponse<Post>> {
     return this.authenticatedRequest<Post>("/posts/", {
       method: "POST",
       body: JSON.stringify(data),
     });
   }
+
+  async getPost(postId: string): Promise<ApiResponse<Post>> {
+    return this.authenticatedRequest<Post>(`/posts/${postId}`, {
+      method: "GET",
+    });
+  }
+
+  async deletePost(postId: string): Promise<ApiResponse> {
+    return this.authenticatedRequest(`/posts/${postId}`, {
+      method: "DELETE",
+    });
+  }
+
+  // ============ Likes Endpoints ============
 
   async likePost(postId: string): Promise<ApiResponse> {
     return this.authenticatedRequest(`/posts/${postId}/like`, {
@@ -268,19 +243,53 @@ class ApiClient {
     });
   }
 
-  // Stories
-  async getStories(): Promise<ApiResponse<Story[]>> {
-    return this.authenticatedRequest<Story[]>("/stories/");
+  async getPostLikes(postId: string, limit = 50, offset = 0): Promise<ApiResponse<User[]>> {
+    return this.authenticatedRequest<User[]>(
+      `/posts/${postId}/likes?limit=${limit}&offset=${offset}`,
+      { method: "GET" }
+    );
   }
 
-  async createStory(data: {
-    content?: string;
-    image_url?: string;
-    background_color?: string;
-  }): Promise<ApiResponse<Story>> {
+  // ============ Comments Endpoints ============
+
+  async getPostComments(postId: string, limit = 50, offset = 0): Promise<ApiResponse<Comment[]>> {
+    return this.authenticatedRequest<Comment[]>(
+      `/posts/${postId}/comments?limit=${limit}&offset=${offset}`,
+      { method: "GET" }
+    );
+  }
+
+  async addComment(postId: string, content: string): Promise<ApiResponse<Comment>> {
+    return this.authenticatedRequest<Comment>(`/posts/${postId}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async deleteComment(postId: string, commentId: string): Promise<ApiResponse> {
+    return this.authenticatedRequest(`/posts/${postId}/comments/${commentId}`, {
+      method: "DELETE",
+    });
+  }
+
+  // ============ Stories Endpoints ============
+
+  async getStories(): Promise<ApiResponse<StoryGroup[]>> {
+    return this.authenticatedRequest<StoryGroup[]>("/stories/", {
+      method: "GET",
+    });
+  }
+
+  async createStory(data: CreateStoryRequest): Promise<ApiResponse<Story>> {
     return this.authenticatedRequest<Story>("/stories/", {
       method: "POST",
       body: JSON.stringify(data),
+    });
+  }
+
+  async getStory(storyId: string): Promise<ApiResponse<Story>> {
+    return this.authenticatedRequest<Story>(`/stories/${storyId}`, {
+      method: "GET",
     });
   }
 
@@ -290,63 +299,100 @@ class ApiClient {
     });
   }
 
-  // Messages
-  async getConversations(): Promise<ApiResponse<Conversation[]>> {
-    return this.authenticatedRequest<Conversation[]>("/messages/");
+  async deleteStory(storyId: string): Promise<ApiResponse> {
+    return this.authenticatedRequest(`/stories/${storyId}`, {
+      method: "DELETE",
+    });
   }
 
-  async getMessages(userId: string): Promise<ApiResponse<Message[]>> {
-    return this.authenticatedRequest<Message[]>(`/messages/${userId}`);
+  // ============ Messages Endpoints ============
+
+  async getConversations(): Promise<ApiResponse<Conversation[]>> {
+    return this.authenticatedRequest<Conversation[]>("/messages/", {
+      method: "GET",
+    });
+  }
+
+  async getMessages(userId: string, limit = 50, offset = 0): Promise<ApiResponse<Message[]>> {
+    return this.authenticatedRequest<Message[]>(
+      `/messages/${userId}?limit=${limit}&offset=${offset}`,
+      { method: "GET" }
+    );
   }
 
   async sendMessage(
     recipientId: string,
-    content: string
+    content: string,
+    imageUrl?: string
   ): Promise<ApiResponse<Message>> {
     return this.authenticatedRequest<Message>("/messages/", {
       method: "POST",
-      body: JSON.stringify({ recipient_id: recipientId, content }),
+      body: JSON.stringify({
+        recipient_id: recipientId,
+        content,
+        image_url: imageUrl,
+        message_type: imageUrl ? "image" : "text",
+      }),
     });
   }
 
-  // Friends
-  async getFriends(): Promise<ApiResponse<User[]>> {
-    return this.authenticatedRequest<User[]>("/friends/");
+  async markMessageRead(messageId: string): Promise<ApiResponse> {
+    return this.authenticatedRequest(`/messages/${messageId}/read`, {
+      method: "PUT",
+    });
   }
 
-  async sendFriendRequest(userId: string): Promise<ApiResponse> {
+  async getUnreadCount(): Promise<ApiResponse<{ count: number }>> {
+    return this.authenticatedRequest<{ count: number }>("/messages/unread/count", {
+      method: "GET",
+    });
+  }
+
+  // ============ Friends Endpoints ============
+
+  async getFriends(): Promise<ApiResponse<Friend[]>> {
+    return this.authenticatedRequest<Friend[]>("/friends/", {
+      method: "GET",
+    });
+  }
+
+  async sendFriendRequest(recipientId: string): Promise<ApiResponse> {
     return this.authenticatedRequest("/friends/request", {
       method: "POST",
-      body: JSON.stringify({ recipient_id: userId }),
+      body: JSON.stringify({ recipient_id: recipientId }),
+    });
+  }
+
+  async getFriendRequests(type: "received" | "sent" = "received"): Promise<ApiResponse<FriendRequest[]>> {
+    return this.authenticatedRequest<FriendRequest[]>(`/friends/requests?type=${type}`, {
+      method: "GET",
     });
   }
 
   async respondToFriendRequest(
     requestId: string,
-    accept: boolean
+    status: "accepted" | "rejected"
   ): Promise<ApiResponse> {
     return this.authenticatedRequest(`/friends/requests/${requestId}`, {
       method: "PUT",
-      body: JSON.stringify({ status: accept ? "accepted" : "rejected" }),
+      body: JSON.stringify({ status }),
     });
   }
 
-  // Search
-  async searchUsers(query: string): Promise<ApiResponse<User[]>> {
-    return this.authenticatedRequest<User[]>(
-      `/users/search/${encodeURIComponent(query)}`
-    );
-  }
-
-  // Profile
-  async updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
-    return this.authenticatedRequest<User>("/users/me", {
-      method: "PUT",
-      body: JSON.stringify(data),
+  async removeFriend(friendId: string): Promise<ApiResponse> {
+    return this.authenticatedRequest(`/friends/${friendId}`, {
+      method: "DELETE",
     });
   }
 
-  // Upload
+  async getFriendSuggestions(limit = 10): Promise<ApiResponse<User[]>> {
+    return this.authenticatedRequest<User[]>(`/friends/suggestions?limit=${limit}`, {
+      method: "GET",
+    });
+  }
+
+  // ============ Upload Endpoints ============
+
   async uploadImage(formData: FormData): Promise<ApiResponse<{ url: string }>> {
     const token = await this.getAccessToken();
     if (!token) {
@@ -382,3 +428,21 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient();
+
+// Re-export types for convenience
+export type {
+  ApiResponse,
+  AuthResponse,
+  RegisterRequest,
+  User,
+  Post,
+  Comment,
+  Story,
+  StoryGroup,
+  CreatePostRequest,
+  CreateStoryRequest,
+  Friend,
+  FriendRequest,
+  Conversation,
+  Message,
+} from "../types";

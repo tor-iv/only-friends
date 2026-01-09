@@ -6,6 +6,7 @@ import {
   Users,
   Grid3X3,
   LogOut,
+  Edit2,
 } from "lucide-react-native";
 import { Avatar, Card, CardContent, Button } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,6 +54,13 @@ export default function ProfileScreen() {
             {user.bio}
           </Text>
         )}
+        <TouchableOpacity
+          onPress={() => router.push("/edit-profile")}
+          className="mt-4 flex-row items-center bg-forest-500 px-4 py-2 rounded-lg"
+        >
+          <Edit2 color="white" size={16} />
+          <Text className="ml-2 text-white font-semibold">Edit Profile</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Stats */}
@@ -71,7 +79,10 @@ export default function ProfileScreen() {
             Posts
           </Text>
         </View>
-        <View className="items-center">
+        <TouchableOpacity
+          onPress={() => router.push("/friends")}
+          className="items-center"
+        >
           <Text
             className="text-xl font-bold text-charcoal-400"
             style={{ fontFamily: "Cabin_700Bold" }}
@@ -84,7 +95,7 @@ export default function ProfileScreen() {
           >
             Friends
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Menu Items */}
@@ -99,12 +110,12 @@ export default function ProfileScreen() {
             <MenuItem
               icon={<Users color="#2D4F37" size={20} />}
               title="Friends"
-              onPress={() => {}}
+              onPress={() => router.push("/friends")}
             />
             <MenuItem
               icon={<Settings color="#2D4F37" size={20} />}
               title="Settings"
-              onPress={() => {}}
+              onPress={() => router.push("/settings")}
               showBorder={false}
             />
           </CardContent>
