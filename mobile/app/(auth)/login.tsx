@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react-native";
+import { ArrowLeft, Phone } from "lucide-react-native";
 import { Button, Input } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -19,41 +19,49 @@ const COUNTRY_CODES = [
   { code: "+44", label: "UK" },
   { code: "+61", label: "AU" },
   { code: "+33", label: "FR" },
+  { code: "+49", label: "DE" },
+  { code: "+81", label: "JP" },
 ];
 
-export default function LoginScreen() {
+export default function PhoneEntryScreen() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { sendOtp } = useAuth();
+
   const [countryCode, setCountryCode] = useState("+1");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showCountryPicker, setShowCountryPicker] = useState(false);
 
-  const handleLogin = async () => {
+  const handleContinue = async () => {
     if (!phoneNumber.trim()) {
       setError("Please enter your phone number");
       return;
     }
 
-    if (!password) {
-      setError("Please enter your password");
+    // Basic validation
+    const cleanedNumber = phoneNumber.replace(/\D/g, "");
+    if (cleanedNumber.length < 10) {
+      setError("Please enter a valid phone number");
       return;
     }
 
     setError("");
     setIsLoading(true);
 
-    const fullPhoneNumber = `${countryCode}${phoneNumber.replace(/\D/g, "")}`;
+    const fullPhoneNumber = `${countryCode}${cleanedNumber}`;
 
     try {
-      const result = await login(fullPhoneNumber, password);
-      if (!result.success) {
-        setError(result.error || "Invalid phone number or password");
+      const result = await sendOtp(fullPhoneNumber);
+
+      if (result.success) {
+        router.push({
+          pathname: "/(auth)/verify",
+          params: { phoneNumber: fullPhoneNumber },
+        });
+      } else {
+        setError(result.error || "Failed to send verification code");
       }
-      // If successful, the auth context will redirect to home
     } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -86,33 +94,34 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
 
-            {/* Header */}
-            <View className="items-center mb-8">
-              <Text
-                className="text-3xl font-bold text-charcoal-400 mb-2"
-                style={{ fontFamily: "Lora_700Bold" }}
-              >
-                Welcome Back
-              </Text>
-              <Text
-                className="text-charcoal-300"
-                style={{ fontFamily: "Cabin_400Regular" }}
-              >
-                Log in to connect with your friends
-              </Text>
-            </View>
+            <View className="flex-1 justify-center">
+              {/* Icon */}
+              <View className="items-center mb-6">
+                <View className="w-20 h-20 rounded-full bg-forest-100 items-center justify-center">
+                  <Phone color="#2D4F37" size={36} />
+                </View>
+              </View>
 
-            {/* Form */}
-            <View className="space-y-4">
-              {/* Phone Number */}
-              <View className="mb-4">
+              {/* Header */}
+              <View className="items-center mb-8">
                 <Text
-                  className="mb-2 text-sm font-medium text-charcoal-400"
-                  style={{ fontFamily: "Cabin_500Medium" }}
+                  className="text-2xl font-bold text-charcoal-400 mb-2"
+                  style={{ fontFamily: "Lora_700Bold" }}
                 >
-                  Phone Number
+                  What's your number?
                 </Text>
+                <Text
+                  className="text-charcoal-300 text-center"
+                  style={{ fontFamily: "Cabin_400Regular" }}
+                >
+                  We'll send you a code to verify it's really you.
+                </Text>
+              </View>
+
+              {/* Phone Input */}
+              <View className="mb-6 relative z-10">
                 <View className="flex-row">
+                  {/* Country Code Selector */}
                   <TouchableOpacity
                     onPress={() => setShowCountryPicker(!showCountryPicker)}
                     className="h-12 px-3 rounded-l-lg border border-r-0 border-cream-400 bg-white items-center justify-center"
@@ -124,18 +133,25 @@ export default function LoginScreen() {
                       {countryCode}
                     </Text>
                   </TouchableOpacity>
+
+                  {/* Phone Number Input */}
                   <View className="flex-1">
                     <Input
                       placeholder="(555) 123-4567"
                       value={phoneNumber}
-                      onChangeText={setPhoneNumber}
+                      onChangeText={(text) => {
+                        setPhoneNumber(text);
+                        setError("");
+                      }}
                       keyboardType="phone-pad"
                       className="rounded-l-none"
                     />
                   </View>
                 </View>
+
+                {/* Country Code Dropdown */}
                 {showCountryPicker && (
-                  <View className="absolute top-20 left-0 z-10 bg-white border border-cream-400 rounded-lg shadow-lg">
+                  <View className="absolute top-14 left-0 z-20 bg-white border border-cream-400 rounded-lg shadow-lg">
                     {COUNTRY_CODES.map((country) => (
                       <TouchableOpacity
                         key={country.label}
@@ -155,81 +171,25 @@ export default function LoginScreen() {
                     ))}
                   </View>
                 )}
-              </View>
 
-              {/* Password */}
-              <View className="mb-4">
-                <View className="flex-row justify-between items-center mb-2">
+                {error ? (
                   <Text
-                    className="text-sm font-medium text-charcoal-400"
-                    style={{ fontFamily: "Cabin_500Medium" }}
+                    className="text-sm text-red-500 mt-2"
+                    style={{ fontFamily: "Cabin_400Regular" }}
                   >
-                    Password
+                    {error}
                   </Text>
-                  <TouchableOpacity>
-                    <Text
-                      className="text-xs text-forest-500"
-                      style={{ fontFamily: "Cabin_400Regular" }}
-                    >
-                      Forgot password?
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <View className="relative">
-                  <Input
-                    placeholder="Enter your password"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
-                    className="pr-12"
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3"
-                  >
-                    {showPassword ? (
-                      <EyeOff color="#999" size={20} />
-                    ) : (
-                      <Eye color="#999" size={20} />
-                    )}
-                  </TouchableOpacity>
-                </View>
+                ) : null}
               </View>
 
-              {/* Error */}
-              {error ? (
-                <Text
-                  className="text-sm text-red-500 text-center mb-4"
-                  style={{ fontFamily: "Cabin_400Regular" }}
-                >
-                  {error}
-                </Text>
-              ) : null}
-
-              {/* Login Button */}
+              {/* Continue Button */}
               <Button
-                onPress={handleLogin}
+                onPress={handleContinue}
                 isLoading={isLoading}
-                className="mb-4"
+                disabled={!phoneNumber.trim()}
               >
-                Log In
+                Continue
               </Button>
-
-              {/* Sign Up Link */}
-              <View className="items-center">
-                <Text
-                  className="text-sm text-charcoal-300"
-                  style={{ fontFamily: "Cabin_400Regular" }}
-                >
-                  Don't have an account?{" "}
-                  <Text
-                    className="text-forest-500"
-                    onPress={() => router.replace("/(auth)")}
-                  >
-                    Sign up
-                  </Text>
-                </Text>
-              </View>
             </View>
           </View>
         </ScrollView>

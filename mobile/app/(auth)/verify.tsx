@@ -19,7 +19,7 @@ const COUNTDOWN_SECONDS = 300; // 5 minutes
 export default function VerifyScreen() {
   const router = useRouter();
   const { phoneNumber } = useLocalSearchParams<{ phoneNumber: string }>();
-  const { verifyPhoneNumber, sendVerificationCode } = useAuth();
+  const { verifyOtp, sendOtp } = useAuth();
 
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +43,6 @@ export default function VerifyScreen() {
 
   const maskPhoneNumber = (phone: string) => {
     if (!phone) return "";
-    // Show first 3 and last 4 digits
     const cleaned = phone.replace(/\D/g, "");
     if (cleaned.length <= 7) return phone;
     return `+${cleaned.slice(0, 2)} (***) ***-${cleaned.slice(-4)}`;
@@ -63,18 +62,17 @@ export default function VerifyScreen() {
     setIsLoading(true);
 
     try {
-      const result = await verifyPhoneNumber(phoneNumber, otp);
+      const result = await verifyOtp(phoneNumber, otp);
+
       if (result.success) {
         if (result.isNewUser) {
           // New user - go to profile creation
-          router.replace({
-            pathname: "/(auth)/create-profile",
-            params: { phoneNumber: result.phoneNumber || phoneNumber },
-          });
+          router.replace("/(auth)/create-profile");
         }
-        // Existing user - auth context will redirect to home
+        // Existing user - auth state will redirect via root layout
       } else {
         Alert.alert("Error", result.error || "Invalid verification code");
+        setOtp("");
       }
     } catch (error) {
       Alert.alert("Error", "Something went wrong. Please try again.");
@@ -90,7 +88,7 @@ export default function VerifyScreen() {
     setCountdown(COUNTDOWN_SECONDS);
 
     try {
-      const result = await sendVerificationCode(phoneNumber);
+      const result = await sendOtp(phoneNumber);
       if (result.success) {
         Alert.alert("Success", "A new code has been sent to your phone");
       } else {
@@ -105,7 +103,6 @@ export default function VerifyScreen() {
 
   const handleOtpComplete = (completedOtp: string) => {
     setOtp(completedOtp);
-    // Optionally auto-submit when OTP is complete
   };
 
   return (
@@ -129,65 +126,80 @@ export default function VerifyScreen() {
             </Text>
           </TouchableOpacity>
 
-          {/* Header */}
-          <View className="items-center mb-8">
-            <Text
-              className="text-2xl font-bold text-charcoal-400 mb-2"
-              style={{ fontFamily: "Lora_700Bold" }}
-            >
-              Verify your number
-            </Text>
-            <Text
-              className="text-charcoal-300 text-center"
-              style={{ fontFamily: "Cabin_400Regular" }}
-            >
-              We've sent a code to {maskPhoneNumber(phoneNumber || "")}
-            </Text>
-          </View>
-
-          {/* OTP Input */}
-          <View className="mb-8">
-            <OtpInput
-              length={6}
-              value={otp}
-              onChange={setOtp}
-              onComplete={handleOtpComplete}
-            />
-          </View>
-
-          {/* Countdown & Resend */}
-          <View className="items-center mb-8">
-            <Text
-              className="text-sm text-charcoal-300 mb-2"
-              style={{ fontFamily: "Cabin_400Regular" }}
-            >
-              Code expires in{" "}
-              <Text style={{ fontFamily: "Cabin_600SemiBold" }}>
-                {formatTime(countdown)}
+          <View className="flex-1 justify-center">
+            {/* Header */}
+            <View className="items-center mb-8">
+              <Text
+                className="text-2xl font-bold text-charcoal-400 mb-2"
+                style={{ fontFamily: "Lora_700Bold" }}
+              >
+                Enter the code
               </Text>
-            </Text>
+              <Text
+                className="text-charcoal-300 text-center"
+                style={{ fontFamily: "Cabin_400Regular" }}
+              >
+                Sent to {maskPhoneNumber(phoneNumber || "")}
+              </Text>
+            </View>
+
+            {/* OTP Input */}
+            <View className="mb-8">
+              <OtpInput
+                length={6}
+                value={otp}
+                onChange={setOtp}
+                onComplete={handleOtpComplete}
+              />
+            </View>
+
+            {/* Countdown & Resend */}
+            <View className="items-center mb-8">
+              <Text
+                className="text-sm text-charcoal-300 mb-2"
+                style={{ fontFamily: "Cabin_400Regular" }}
+              >
+                Code expires in{" "}
+                <Text style={{ fontFamily: "Cabin_600SemiBold" }}>
+                  {formatTime(countdown)}
+                </Text>
+              </Text>
+              <TouchableOpacity
+                onPress={handleResend}
+                disabled={!canResend}
+                className={canResend ? "" : "opacity-50"}
+              >
+                <Text
+                  className={`text-sm ${canResend ? "text-forest-500" : "text-charcoal-300"}`}
+                  style={{ fontFamily: "Cabin_500Medium" }}
+                >
+                  Resend code
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Verify Button */}
+            <Button
+              onPress={handleVerify}
+              isLoading={isLoading}
+              disabled={otp.length !== 6}
+            >
+              Verify
+            </Button>
+
+            {/* Wrong Number Link */}
             <TouchableOpacity
-              onPress={handleResend}
-              disabled={!canResend}
-              className={canResend ? "" : "opacity-50"}
+              onPress={() => router.back()}
+              className="items-center mt-4"
             >
               <Text
-                className={`text-sm ${canResend ? "text-forest-500" : "text-charcoal-300"}`}
-                style={{ fontFamily: "Cabin_500Medium" }}
+                className="text-sm text-forest-400"
+                style={{ fontFamily: "Cabin_400Regular" }}
               >
-                Resend code
+                Wrong number?
               </Text>
             </TouchableOpacity>
           </View>
-
-          {/* Verify Button */}
-          <Button
-            onPress={handleVerify}
-            isLoading={isLoading}
-            disabled={otp.length !== 6}
-          >
-            Verify
-          </Button>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -9,56 +9,41 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { ArrowLeft, Calendar } from "lucide-react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { format } from "date-fns";
+import { useRouter } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
 import { Button, Input } from "@/components/ui";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import { useAuth } from "@/contexts/AuthContext";
-import { apiClient } from "@/lib/api-client";
+import { uploadFile } from "@/lib/supabase";
 
 export default function CreateProfileScreen() {
   const router = useRouter();
-  const { phoneNumber } = useLocalSearchParams<{ phoneNumber: string }>();
-  const { register } = useAuth();
+  const { user, createProfile } = useAuth();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [birthday, setBirthday] = useState<Date | undefined>(undefined);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === "ios");
-    if (selectedDate) {
-      setBirthday(selectedDate);
-    }
-  };
-
   const validateForm = () => {
-    if (!firstName.trim()) {
-      Alert.alert("Error", "Please enter your first name");
+    if (!displayName.trim()) {
+      Alert.alert("Error", "Please enter your name");
       return false;
     }
-    if (!lastName.trim()) {
-      Alert.alert("Error", "Please enter your last name");
+    if (displayName.trim().length < 2) {
+      Alert.alert("Error", "Name must be at least 2 characters");
       return false;
     }
-    if (!password) {
-      Alert.alert("Error", "Please create a password");
+    if (displayName.trim().length > 30) {
+      Alert.alert("Error", "Name must be 30 characters or less");
       return false;
     }
-    if (password.length < 8) {
-      Alert.alert("Error", "Password must be at least 8 characters");
+    if (!profileImage) {
+      Alert.alert("Error", "Please add a profile photo");
       return false;
     }
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
+    if (bio.length > 100) {
+      Alert.alert("Error", "Bio must be 100 characters or less");
       return false;
     }
     return true;
@@ -66,48 +51,46 @@ export default function CreateProfileScreen() {
 
   const handleContinue = async () => {
     if (!validateForm()) return;
-    if (!phoneNumber) {
-      Alert.alert("Error", "Phone number not found. Please start over.");
+    if (!user) {
+      Alert.alert("Error", "Not authenticated. Please start over.");
+      router.replace("/(auth)");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Upload profile image if selected
-      let avatarUrl: string | undefined;
+      // Upload profile image
+      let avatarUrl: string | null = null;
+
       if (profileImage) {
-        const formData = new FormData();
-        const filename = profileImage.split("/").pop() || "profile.jpg";
-        const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : "image/jpeg";
+        const fileName = `${user.id}/avatar.jpg`;
+        const response = await fetch(profileImage);
+        const blob = await response.blob();
 
-        formData.append("file", {
-          uri: profileImage,
-          name: filename,
-          type,
-        } as any);
+        avatarUrl = await uploadFile("avatars", fileName, blob, "image/jpeg");
 
-        const uploadResult = await apiClient.uploadImage(formData);
-        if (uploadResult.success && uploadResult.data) {
-          avatarUrl = uploadResult.data.url;
+        if (!avatarUrl) {
+          Alert.alert("Error", "Failed to upload profile photo. Please try again.");
+          setIsLoading(false);
+          return;
         }
       }
 
-      const result = await register({
-        phone_number: phoneNumber,
-        email: email || undefined,
-        first_name: firstName,
-        last_name: lastName,
-        password,
+      const result = await createProfile({
+        display_name: displayName.trim(),
+        avatar_url: avatarUrl!,
+        bio: bio.trim() || undefined,
       });
 
       if (result.success) {
-        // Registration successful - auth context will redirect to home
+        // Go to contacts permission screen
+        router.replace("/(auth)/contacts");
       } else {
-        Alert.alert("Error", result.error || "Registration failed");
+        Alert.alert("Error", result.error || "Failed to create profile");
       }
     } catch (error) {
+      console.error("Error creating profile:", error);
       Alert.alert("Error", "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
@@ -145,7 +128,13 @@ export default function CreateProfileScreen() {
                 className="text-2xl font-bold text-charcoal-400"
                 style={{ fontFamily: "Lora_700Bold" }}
               >
-                Create Your Profile
+                Set up your profile
+              </Text>
+              <Text
+                className="text-charcoal-300 mt-2 text-center"
+                style={{ fontFamily: "Cabin_400Regular" }}
+              >
+                Add a photo and name so friends recognize you
               </Text>
             </View>
 
@@ -155,109 +144,63 @@ export default function CreateProfileScreen() {
                 imageUri={profileImage}
                 onImageSelected={setProfileImage}
               />
+              <Text
+                className="text-xs text-charcoal-300 mt-2"
+                style={{ fontFamily: "Cabin_400Regular" }}
+              >
+                Required
+              </Text>
             </View>
 
             {/* Form */}
             <View className="space-y-4">
-              {/* Name Row */}
-              <View className="flex-row gap-4 mb-4">
-                <View className="flex-1">
-                  <Input
-                    label="First Name"
-                    placeholder="First Name"
-                    value={firstName}
-                    onChangeText={setFirstName}
-                    autoCapitalize="words"
-                  />
-                </View>
-                <View className="flex-1">
-                  <Input
-                    label="Last Name"
-                    placeholder="Last Name"
-                    value={lastName}
-                    onChangeText={setLastName}
-                    autoCapitalize="words"
-                  />
-                </View>
-              </View>
-
-              {/* Email */}
+              {/* Display Name */}
               <View className="mb-4">
                 <Input
-                  label="Email (optional)"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
+                  label="Display Name"
+                  placeholder="How friends see you"
+                  value={displayName}
+                  onChangeText={setDisplayName}
+                  autoCapitalize="words"
+                  maxLength={30}
                 />
-              </View>
-
-              {/* Password */}
-              <View className="mb-4">
-                <Input
-                  label="Password"
-                  placeholder="Create a password"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
-              </View>
-
-              {/* Confirm Password */}
-              <View className="mb-4">
-                <Input
-                  label="Confirm Password"
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry
-                />
-              </View>
-
-              {/* Birthday */}
-              <View className="mb-4">
                 <Text
-                  className="mb-2 text-sm font-medium text-charcoal-400"
-                  style={{ fontFamily: "Cabin_500Medium" }}
-                >
-                  Birthday (optional)
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setShowDatePicker(true)}
-                  className="h-12 px-4 rounded-lg border border-cream-400 bg-white flex-row items-center"
-                >
-                  <Calendar color="#999" size={18} />
-                  <Text
-                    className={`ml-2 ${birthday ? "text-charcoal-400" : "text-charcoal-200"}`}
-                    style={{ fontFamily: "Cabin_400Regular" }}
-                  >
-                    {birthday ? format(birthday, "MMMM d, yyyy") : "Select your birthday"}
-                  </Text>
-                </TouchableOpacity>
-                <Text
-                  className="text-xs text-charcoal-300 mt-1"
+                  className="text-xs text-charcoal-300 mt-1 text-right"
                   style={{ fontFamily: "Cabin_400Regular" }}
                 >
-                  Your birthday will be shared with friends on your special day.
+                  {displayName.length}/30
                 </Text>
               </View>
 
-              {showDatePicker && (
-                <DateTimePicker
-                  value={birthday || new Date(2000, 0, 1)}
-                  mode="date"
-                  display="spinner"
-                  onChange={handleDateChange}
-                  maximumDate={new Date()}
-                  minimumDate={new Date(1924, 0, 1)}
+              {/* Bio */}
+              <View className="mb-4">
+                <Input
+                  label="Bio (optional)"
+                  placeholder="A little about yourself"
+                  value={bio}
+                  onChangeText={setBio}
+                  multiline
+                  numberOfLines={3}
+                  maxLength={100}
+                  className="h-20"
+                  textAlignVertical="top"
                 />
-              )}
+                <Text
+                  className="text-xs text-charcoal-300 mt-1 text-right"
+                  style={{ fontFamily: "Cabin_400Regular" }}
+                >
+                  {bio.length}/100
+                </Text>
+              </View>
             </View>
 
             {/* Continue Button */}
             <View className="mt-6 mb-8">
-              <Button onPress={handleContinue} isLoading={isLoading}>
+              <Button
+                onPress={handleContinue}
+                isLoading={isLoading}
+                disabled={!displayName.trim() || !profileImage}
+              >
                 Continue
               </Button>
             </View>

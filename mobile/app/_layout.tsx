@@ -44,24 +44,40 @@ const OnlyFriendsTheme = {
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const segments = useSegments();
+  const { isAuthenticated, hasProfile, isLoading, isProfileLoading } = useAuth();
+  const segments = useSegments() as string[];
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return;
+    // Wait for both auth and profile loading to complete
+    if (isLoading || isProfileLoading) return;
 
     const inAuthGroup = segments[0] === "(auth)";
+    const currentScreen = segments.length > 1 ? segments[1] : undefined;
 
-    if (!isAuthenticated && !inAuthGroup) {
-      // Redirect to welcome screen if not authenticated
-      router.replace("/(auth)");
-    } else if (isAuthenticated && inAuthGroup) {
-      // Redirect to home if authenticated and in auth group
-      router.replace("/(tabs)");
+    if (!isAuthenticated) {
+      // Not logged in - go to auth welcome screen
+      if (!inAuthGroup) {
+        router.replace("/(auth)");
+      }
+    } else if (!hasProfile) {
+      // Logged in but no profile - go to profile creation
+      // But allow them to stay on create-profile or contacts screen
+      if (!inAuthGroup || (currentScreen !== "create-profile" && currentScreen !== "contacts")) {
+        router.replace("/(auth)/create-profile");
+      }
+    } else {
+      // Fully authenticated with profile - go to main app
+      // But allow them to stay on contacts screen if they're there (part of onboarding)
+      if (inAuthGroup && currentScreen !== "contacts") {
+        router.replace("/(tabs)");
+      } else if (!inAuthGroup) {
+        // Already in the right place
+      }
     }
-  }, [isAuthenticated, isLoading, segments]);
+  }, [isAuthenticated, hasProfile, isLoading, isProfileLoading, segments]);
 
+  // Show loading spinner while auth state is being determined
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-cream">
