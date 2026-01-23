@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { MoreHorizontal, Eye } from "lucide-react-native";
 import { Avatar } from "./ui";
 import { colors } from "../theme";
-import type { Post } from "../types";
+import { getPostImageUrl } from "@/lib/posts";
+import type { PostWithAuthor } from "@/types/database";
 
 interface PostCardProps {
-  post: Post;
+  post: PostWithAuthor;
   currentUserId: string;
-  onLikeToggle: (postId: string, isLiked: boolean) => Promise<void>;
-  onCommentPress: (postId: string) => void;
   onUserPress: (userId: string) => void;
   onDeletePress?: (postId: string) => void;
+  onSeenByPress?: (postId: string) => void;
 }
 
 function formatTimestamp(dateString: string): string {
@@ -33,63 +33,85 @@ function formatTimestamp(dateString: string): string {
   });
 }
 
+function formatSeenBy(
+  viewCount: number,
+  viewers?: { display_name: string }[],
+  isOwnPost?: boolean
+): string {
+  if (viewCount === 0) {
+    return isOwnPost ? "No one has seen this yet" : "";
+  }
+
+  if (!viewers || viewers.length === 0) {
+    return `Seen by ${viewCount}`;
+  }
+
+  if (viewers.length === 1) {
+    return `Seen by ${viewers[0].display_name}`;
+  }
+
+  if (viewers.length === 2) {
+    return `Seen by ${viewers[0].display_name} and ${viewers[1].display_name}`;
+  }
+
+  const remaining = viewCount - 2;
+  if (remaining > 0) {
+    return `Seen by ${viewers[0].display_name}, ${viewers[1].display_name}, +${remaining}`;
+  }
+
+  return `Seen by ${viewers[0].display_name} and ${viewers[1].display_name}`;
+}
+
 export function PostCard({
   post,
   currentUserId,
-  onLikeToggle,
-  onCommentPress,
   onUserPress,
   onDeletePress,
+  onSeenByPress,
 }: PostCardProps) {
-  const [isLiked, setIsLiked] = useState(post.is_liked);
-  const [likesCount, setLikesCount] = useState(post.likes_count);
-  const [isLiking, setIsLiking] = useState(false);
-
   const isOwnPost = post.user_id === currentUserId;
-  const fullName = `${post.user_first_name} ${post.user_last_name}`;
-
-  const handleLikePress = async () => {
-    if (isLiking) return;
-
-    // Optimistic update
-    const newIsLiked = !isLiked;
-    setIsLiked(newIsLiked);
-    setLikesCount((prev) => prev + (newIsLiked ? 1 : -1));
-    setIsLiking(true);
-
-    try {
-      await onLikeToggle(post.id, newIsLiked);
-    } catch {
-      // Revert on error
-      setIsLiked(!newIsLiked);
-      setLikesCount((prev) => prev + (newIsLiked ? -1 : 1));
-    } finally {
-      setIsLiking(false);
-    }
-  };
+  const displayName = post.author?.display_name || "Unknown";
+  const avatarUrl = post.author?.avatar_url;
+  const imageUrl = getPostImageUrl(post.image_path);
+  const viewCount = post.view_count || 0;
 
   const handleOptionsPress = () => {
     if (!isOwnPost || !onDeletePress) return;
 
-    Alert.alert(
-      "Post Options",
-      "What would you like to do?",
-      [
-        {
-          text: "Delete Post",
-          style: "destructive",
-          onPress: () => onDeletePress(post.id),
+    Alert.alert("Post Options", "What would you like to do?", [
+      {
+        text: "Delete Post",
+        style: "destructive",
+        onPress: () => {
+          Alert.alert(
+            "Delete Post?",
+            "This will permanently delete this post.",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: () => onDeletePress(post.id),
+              },
+            ]
+          );
         },
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-      ]
-    );
+      },
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+    ]);
+  };
+
+  const handleSeenByPress = () => {
+    if (isOwnPost && onSeenByPress && viewCount > 0) {
+      onSeenByPress(post.id);
+    }
   };
 
   return (
-    <View className="bg-white border-b border-cream-400">
+    <View className="bg-white mb-2">
       {/* Header */}
       <View className="flex-row items-center px-4 py-3">
         <TouchableOpacity
@@ -97,18 +119,19 @@ export function PostCard({
           activeOpacity={0.7}
           className="flex-row items-center flex-1"
         >
-          <Avatar
-            name={fullName}
-            imageUrl={post.user_avatar_url}
-            size="sm"
-          />
+          <Avatar name={displayName} imageUrl={avatarUrl} size="sm" />
           <View className="ml-3 flex-1">
-            <Text className="font-semibold text-charcoal-400">
-              {fullName}
+            <Text
+              className="font-semibold text-charcoal-400"
+              style={{ fontFamily: "Cabin_600SemiBold" }}
+            >
+              {displayName}
             </Text>
-            <Text className="text-xs text-charcoal-300">
+            <Text
+              className="text-xs text-charcoal-300"
+              style={{ fontFamily: "Cabin_400Regular" }}
+            >
               {formatTimestamp(post.created_at)}
-              {post.location && ` \u00B7 ${post.location}`}
             </Text>
           </View>
         </TouchableOpacity>
@@ -117,77 +140,62 @@ export function PostCard({
           <TouchableOpacity
             onPress={handleOptionsPress}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            className="p-1"
           >
-            <Ionicons name="ellipsis-horizontal" size={20} color={colors.charcoal[300]} />
+            <MoreHorizontal color={colors.charcoal[300]} size={20} />
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Content */}
-      {post.content && (
-        <Text className="px-4 pb-3 text-charcoal-400 leading-5">
-          {post.content}
-        </Text>
-      )}
-
       {/* Image */}
-      {post.image_url && (
-        <Image
-          source={{ uri: post.image_url }}
-          className="w-full"
-          style={{ aspectRatio: 1 }}
-          resizeMode="cover"
-        />
+      <Image
+        source={{ uri: imageUrl }}
+        className="w-full"
+        style={{ aspectRatio: 1 }}
+        resizeMode="cover"
+      />
+
+      {/* Caption */}
+      {post.caption && (
+        <View className="px-4 pt-3">
+          <Text
+            className="text-charcoal-400 leading-5"
+            style={{ fontFamily: "Cabin_400Regular" }}
+          >
+            <Text style={{ fontFamily: "Cabin_600SemiBold" }}>{displayName}</Text>{" "}
+            {post.caption}
+          </Text>
+        </View>
       )}
 
-      {/* Actions */}
-      <View className="flex-row items-center px-4 py-3">
-        <TouchableOpacity
-          onPress={handleLikePress}
-          activeOpacity={0.7}
-          className="flex-row items-center mr-5"
-          disabled={isLiking}
+      {/* Seen By */}
+      <TouchableOpacity
+        onPress={handleSeenByPress}
+        disabled={!isOwnPost || viewCount === 0}
+        activeOpacity={isOwnPost && viewCount > 0 ? 0.7 : 1}
+        className="flex-row items-center px-4 py-3"
+      >
+        <Eye
+          color={viewCount > 0 ? colors.charcoal[400] : colors.charcoal[200]}
+          size={16}
+        />
+        <Text
+          className={`ml-2 text-sm ${
+            viewCount > 0 ? "text-charcoal-400" : "text-charcoal-200"
+          }`}
+          style={{ fontFamily: "Cabin_400Regular" }}
         >
-          <Ionicons
-            name={isLiked ? "heart" : "heart-outline"}
-            size={24}
-            color={isLiked ? colors.forest[500] : colors.charcoal[400]}
-          />
-          {likesCount > 0 && (
-            <Text className="ml-1 font-medium text-charcoal-400">
-              {likesCount}
-            </Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => onCommentPress(post.id)}
-          activeOpacity={0.7}
-          className="flex-row items-center mr-5"
-        >
-          <Ionicons
-            name="chatbubble-outline"
-            size={22}
-            color={colors.charcoal[400]}
-          />
-          {post.comments_count > 0 && (
-            <Text className="ml-1 font-medium text-charcoal-400">
-              {post.comments_count}
-            </Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          className="flex-row items-center"
-        >
-          <Ionicons
-            name="share-outline"
-            size={22}
-            color={colors.charcoal[400]}
-          />
-        </TouchableOpacity>
-      </View>
+          {formatSeenBy(viewCount, post.viewers, isOwnPost)}
+        </Text>
+        {isOwnPost && viewCount > 0 && (
+          <Text
+            className="ml-1 text-sm text-forest-500"
+            style={{ fontFamily: "Cabin_500Medium" }}
+          >
+            View
+          </Text>
+        )}
+      </TouchableOpacity>
     </View>
   );
 }
