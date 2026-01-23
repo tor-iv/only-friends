@@ -1,59 +1,41 @@
 # Only Friends
 
-The Anti-Social Social Network - a stripped-down, intentional photo-sharing app designed for maintaining relationships with people you already know.
+**The Anti-Social Social Network**
 
-## Philosophy
+A private photo-sharing app for the people who actually matter. No likes. No comments. No strangers. Just real friends.
 
-- **Anti-discovery:** No explore, no suggestions, no hashtags, no search
-- **Anti-engagement:** "Seen by" instead of likes. No comments. No anxiety-inducing notifications
-- **Pro-privacy:** Screenshot detection, no public profiles, invite-only access
-- **Once-daily rhythm:** Check once, see everything, done. No infinite scroll
-- **Thoughtful sharing:** Share meaningful moments, not spontaneous content
+## What Makes It Different
 
-## Tech Stack
+**You already know everyone here.** Only Friends uses your phone contacts to connect you with people who have your number *and* you have theirs. No friend requests from strangers. No suggested follows. No algorithms deciding who you see.
 
-- **Mobile App:** React Native with Expo
-- **Backend:** Supabase (Auth, Database, Storage)
-- **SMS:** Twilio for phone verification
+**No engagement games.** Instead of likes and comments, you just see who viewed your post. Share because you want to, not because you're chasing numbers.
 
-## Project Structure
+**Built for once-a-day.** Open the app, see what your friends shared, close it. No infinite scroll. No notification spam. Your time is yours.
 
-```
-only-friends/
-├── mobile/               # React Native Expo app (main application)
-│   ├── app/              # Expo Router screens
-│   ├── components/       # UI components
-│   ├── contexts/         # React Context providers
-│   ├── lib/              # Supabase client & service modules
-│   ├── supabase/         # Database migration files
-│   └── types/            # TypeScript definitions
-├── docs/                 # Documentation
-│   ├── prd.md            # Product Requirements Document
-│   └── TWILIO_SETUP.md   # Twilio configuration guide
-└── backend/              # Legacy FastAPI (deprecated)
-```
+**Invite-only.** New users need an invite code from an existing member. Your circle stays intentional.
 
-## Getting Started
+**Limited connections.** Start with 15 connection slots. Invite friends to unlock more (up to 50). Quality over quantity.
 
-See [mobile/README.md](mobile/README.md) for setup instructions.
+## Features
 
-## Key Features
+- **Phone-based sign up** - No passwords, just your phone number
+- **Contact matching** - Find friends who have your number
+- **Photo posts** - Share meaningful moments with captions
+- **"Seen by"** - Know who viewed your post (no like counts)
+- **Screenshot alerts** - Get notified if someone screenshots
+- **Invite codes** - Share codes to bring in trusted friends
+- **Connection cap** - 15 free slots, unlock more by inviting
 
-| Feature | Description |
-|---------|-------------|
-| Phone Auth | OTP-based authentication via Supabase + Twilio |
-| Invite Codes | New users must enter a valid invite code |
-| Contact Matching | Find friends who have your number (mutual) |
-| Connection Cap | 15 connections free, unlock more by inviting friends (25/35/50) |
-| Photo Posts | Share photos with captions (from gallery, not camera) |
-| Seen By | See who viewed your post instead of likes |
-| Screenshot Alerts | Get notified when someone screenshots your post |
+## The Philosophy
 
-## Documentation
+Social media is broken. It's designed to make you scroll forever, feel bad about yourself, and show your worst self to strangers.
 
-- [Product Requirements](docs/prd.md) - Full product specification
-- [Twilio Setup](docs/TWILIO_SETUP.md) - SMS configuration guide
+Only Friends is the opposite. It's for the 15-50 people you'd actually want to see at a party. Share the unfiltered moments. See what your real friends are up to. Then get on with your life.
 
-## License
+No ads. No algorithms. No anxiety.
 
-This project is private and proprietary.
+---
+
+*Built with React Native (Expo) and Supabase*
+
+For developer documentation, see [mobile/README.md](mobile/README.md)
