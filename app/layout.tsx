@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Cabin, Lora } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from "@/contexts/auth-context"
 
 const cabin = Cabin({
   subsets: ["latin"],
@@ -31,8 +32,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${cabin.variable} ${lora.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-          {/* NavigationTracker is conditionally rendered in client components that need it */}
-          {children}
+          <AuthProvider>
+            {/* NavigationTracker is conditionally rendered in client components that need it */}
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

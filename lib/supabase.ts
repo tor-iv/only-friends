@@ -43,18 +43,20 @@ export async function testConnection() {
 
 // Auth helpers
 export const auth = {
-  // Sign up with phone number (you'll implement this with your Python backend)
-  signUp: async (phone: string, password: string) => {
-    // This will be handled by your Python backend with Twilio
-    // For now, return a placeholder
-    throw new Error('Sign up should be handled by your Python backend')
+  // Send OTP to phone number
+  sendOtp: async (phone: string) => {
+    const { data, error } = await supabase.auth.signInWithOtp({ phone })
+    return { data, error }
   },
 
-  // Sign in with phone number and password
-  signIn: async (phone: string, password: string) => {
-    // This will also be handled by your Python backend
-    // You'll get a JWT token back and set it manually
-    throw new Error('Sign in should be handled by your Python backend')
+  // Verify OTP code
+  verifyOtp: async (phone: string, token: string) => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms'
+    })
+    return { data, error }
   },
 
   // Sign out
@@ -73,6 +75,11 @@ export const auth = {
   getSession: async () => {
     const { data: { session }, error } = await supabase.auth.getSession()
     return { session, error }
+  },
+
+  // Listen to auth state changes
+  onAuthStateChange: (callback: (event: string, session: any) => void) => {
+    return supabase.auth.onAuthStateChange(callback)
   }
 }
 

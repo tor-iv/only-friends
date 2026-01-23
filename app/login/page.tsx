@@ -7,21 +7,34 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, Eye, EyeOff } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
+
+const countryCodes: { [key: string]: string } = {
+  US: "+1",
+  UK: "+44",
+  CA: "+1",
+  AU: "+61",
+}
 
 export default function LoginPage() {
   const router = useRouter()
+  const { sendVerificationCode } = useAuth()
   const [phoneNumber, setPhoneNumber] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
+  const [countryCode, setCountryCode] = useState("US")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const formatPhoneForApi = (phone: string, country: string): string => {
+    // Remove all non-numeric characters
+    const cleaned = phone.replace(/\D/g, "")
+    // Add country code
+    return `${countryCodes[country]}${cleaned}`
+  }
+
+  const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // Basic validation
@@ -30,23 +43,22 @@ export default function LoginPage() {
       return
     }
 
-    if (!password) {
-      setError("Please enter your password")
-      return
-    }
-
     setError("")
     setIsLoading(true)
 
     try {
-      // In a real app, you would call an API to authenticate the user
-      // For this demo, we'll simulate a successful login after a short delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const formattedPhone = formatPhoneForApi(phoneNumber, countryCode)
+      const result = await sendVerificationCode(formattedPhone)
 
-      // Redirect to home page after successful login
-      router.push("/home")
+      if (result.success) {
+        // Store phone number in session storage for verify page
+        sessionStorage.setItem("verify_phone", formattedPhone)
+        router.push("/verify")
+      } else {
+        setError(result.error || "Failed to send verification code")
+      }
     } catch (err) {
-      setError("Invalid phone number or password")
+      setError("An unexpected error occurred")
     } finally {
       setIsLoading(false)
     }
@@ -63,15 +75,15 @@ export default function LoginPage() {
 
           <div className="text-center mb-8">
             <h1 className="font-serif text-3xl font-bold mb-2">Welcome Back</h1>
-            <p className="text-muted-foreground">Log in to connect with your friends</p>
+            <p className="text-muted-foreground">Enter your phone number to sign in</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleSendCode} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
                 <div className="flex">
-                  <Select defaultValue="US">
+                  <Select value={countryCode} onValueChange={setCountryCode}>
                     <SelectTrigger className="w-[80px] rounded-r-none">
                       <SelectValue placeholder="Country" />
                     </SelectTrigger>
@@ -91,45 +103,9 @@ export default function LoginPage() {
                     onChange={(e) => setPhoneNumber(e.target.value)}
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-forest-500 hover:text-forest-600 dark:text-cream-400 dark:hover:text-cream-300"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                />
-                <Label htmlFor="remember" className="text-sm font-normal">
-                  Remember me
-                </Label>
+                <p className="text-xs text-muted-foreground">
+                  We'll send you a verification code via SMS
+                </p>
               </div>
             </div>
 
@@ -141,7 +117,7 @@ export default function LoginPage() {
               size="lg"
               disabled={isLoading}
             >
-              {isLoading ? "Logging in..." : "Log In"}
+              {isLoading ? "Sending code..." : "Send Verification Code"}
             </Button>
 
             <div className="text-center">
