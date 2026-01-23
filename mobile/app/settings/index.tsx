@@ -66,7 +66,7 @@ function SettingsSectionHeader({ title }: { title: string }) {
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { signOut } = useAuth();
 
   const handleLogout = () => {
     Alert.alert(
@@ -77,7 +77,7 @@ export default function SettingsScreen() {
         {
           text: "Log Out",
           style: "destructive",
-          onPress: logout,
+          onPress: signOut,
         },
       ]
     );

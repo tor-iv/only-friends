@@ -3,8 +3,12 @@ import { View, Text, Image, ViewProps } from "react-native";
 
 type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl";
 
-interface AvatarProps extends ViewProps {
+export interface AvatarProps extends ViewProps {
+  /** Image URL (alias: source) */
+  imageUrl?: string | null;
   source?: string | null;
+  /** Display name for generating initials (alias: fallback) */
+  name?: string;
   fallback?: string;
   size?: AvatarSize;
 }
@@ -19,7 +23,9 @@ const sizeStyles: Record<AvatarSize, { container: string; text: string; imageSiz
 
 export function Avatar({
   source,
+  imageUrl,
   fallback,
+  name,
   size = "md",
   className,
   style,
@@ -27,17 +33,21 @@ export function Avatar({
 }: AvatarProps) {
   const sizeConfig = sizeStyles[size];
 
+  // Support both naming conventions
+  const imgSource = imageUrl ?? source;
+  const displayName = name ?? fallback;
+
   // Get initials from fallback
-  const getInitials = (name?: string) => {
-    if (!name) return "?";
-    const parts = name.split(" ");
+  const getInitials = (text?: string) => {
+    if (!text) return "?";
+    const parts = text.split(" ");
     if (parts.length >= 2) {
       return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     }
-    return name.substring(0, 2).toUpperCase();
+    return text.substring(0, 2).toUpperCase();
   };
 
-  if (source) {
+  if (imgSource) {
     return (
       <View
         className={`${sizeConfig.container} rounded-full overflow-hidden bg-cream-400 ${className || ""}`}
@@ -45,7 +55,7 @@ export function Avatar({
         {...props}
       >
         <Image
-          source={{ uri: source }}
+          source={{ uri: imgSource }}
           style={{
             width: sizeConfig.imageSize,
             height: sizeConfig.imageSize,
@@ -66,7 +76,7 @@ export function Avatar({
         className={`${sizeConfig.text} font-semibold text-forest-600`}
         style={{ fontFamily: "Cabin_600SemiBold" }}
       >
-        {getInitials(fallback)}
+        {getInitials(displayName)}
       </Text>
     </View>
   );

@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import {
   Settings,
@@ -10,26 +11,64 @@ import {
 } from "lucide-react-native";
 import { Avatar, Card, CardContent, Button } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
+import { getConnections } from "@/lib/connections";
+import { supabase } from "@/lib/supabase";
+import { colors } from "@/theme";
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, profile, signOut } = useAuth();
 
-  const handleLogout = async () => {
-    await logout();
+  const [connectionCount, setConnectionCount] = useState(0);
+  const [postCount, setPostCount] = useState(0);
+
+  useEffect(() => {
+    loadStats();
+  }, [user?.id]);
+
+  const loadStats = async () => {
+    if (!user?.id) return;
+
+    try {
+      // Get connection count
+      const connections = await getConnections();
+      setConnectionCount(connections.length);
+
+      // Get post count
+      const { count } = await supabase
+        .from("posts")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .is("archived_at", null);
+
+      setPostCount(count || 0);
+    } catch (error) {
+      console.error("Error loading stats:", error);
+    }
   };
 
-  const displayName = user
-    ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
-    : "User";
+  const handleLogout = () => {
+    Alert.alert("Log Out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log Out",
+        style: "destructive",
+        onPress: async () => {
+          await signOut();
+        },
+      },
+    ]);
+  };
+
+  const displayName = profile?.display_name || "User";
 
   return (
     <ScrollView className="flex-1 bg-cream">
       {/* Profile Header */}
       <View className="items-center pt-6 pb-4 px-4">
         <Avatar
-          source={user?.avatar_url}
-          fallback={displayName}
+          name={displayName}
+          imageUrl={profile?.avatar_url}
           size="xl"
         />
         <Text
@@ -38,20 +77,12 @@ export default function ProfileScreen() {
         >
           {displayName}
         </Text>
-        {user?.username && (
-          <Text
-            className="text-charcoal-300"
-            style={{ fontFamily: "Cabin_400Regular" }}
-          >
-            @{user.username}
-          </Text>
-        )}
-        {user?.bio && (
+        {profile?.bio && (
           <Text
             className="mt-2 text-center text-charcoal-400 px-8"
             style={{ fontFamily: "Cabin_400Regular" }}
           >
-            {user.bio}
+            {profile.bio}
           </Text>
         )}
         <TouchableOpacity
@@ -59,7 +90,12 @@ export default function ProfileScreen() {
           className="mt-4 flex-row items-center bg-forest-500 px-4 py-2 rounded-lg"
         >
           <Edit2 color="white" size={16} />
-          <Text className="ml-2 text-white font-semibold">Edit Profile</Text>
+          <Text
+            className="ml-2 text-white font-semibold"
+            style={{ fontFamily: "Cabin_600SemiBold" }}
+          >
+            Edit Profile
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -70,7 +106,7 @@ export default function ProfileScreen() {
             className="text-xl font-bold text-charcoal-400"
             style={{ fontFamily: "Cabin_700Bold" }}
           >
-            0
+            {postCount}
           </Text>
           <Text
             className="text-sm text-charcoal-300"
@@ -80,20 +116,22 @@ export default function ProfileScreen() {
           </Text>
         </View>
         <TouchableOpacity
-          onPress={() => router.push("/friends")}
+          onPress={() => router.push("/connections")}
           className="items-center"
         >
           <Text
             className="text-xl font-bold text-charcoal-400"
             style={{ fontFamily: "Cabin_700Bold" }}
           >
-            0
+            {connectionCount}
           </Text>
           <Text
             className="text-sm text-charcoal-300"
             style={{ fontFamily: "Cabin_400Regular" }}
           >
-            Friends
+            {profile?.connection_cap
+              ? `of ${profile.connection_cap}`
+              : "Connections"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -103,17 +141,17 @@ export default function ProfileScreen() {
         <Card className="mb-4">
           <CardContent className="p-0">
             <MenuItem
-              icon={<Grid3X3 color="#2D4F37" size={20} />}
+              icon={<Grid3X3 color={colors.forest[500]} size={20} />}
               title="My Posts"
               onPress={() => {}}
             />
             <MenuItem
-              icon={<Users color="#2D4F37" size={20} />}
-              title="Friends"
-              onPress={() => router.push("/friends")}
+              icon={<Users color={colors.forest[500]} size={20} />}
+              title="Connections"
+              onPress={() => router.push("/connections")}
             />
             <MenuItem
-              icon={<Settings color="#2D4F37" size={20} />}
+              icon={<Settings color={colors.forest[500]} size={20} />}
               title="Settings"
               onPress={() => router.push("/settings")}
               showBorder={false}
@@ -161,7 +199,7 @@ function MenuItem({ icon, title, onPress, showBorder = true }: MenuItemProps) {
           {title}
         </Text>
       </View>
-      <ChevronRight color="#999" size={20} />
+      <ChevronRight color={colors.charcoal[300]} size={20} />
     </TouchableOpacity>
   );
 }

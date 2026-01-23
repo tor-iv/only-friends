@@ -3,161 +3,197 @@ import {
   View,
   Text,
   TouchableOpacity,
-  TextInput,
   Alert,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { Button } from "../../components/ui";
-import { useAuth } from "../../contexts/AuthContext";
-import { apiClient } from "../../lib/api-client";
-import { colors } from "../../theme";
+import { ArrowLeft, Phone, Trash2 } from "lucide-react-native";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { colors } from "@/theme";
 
 export default function AccountSettingsScreen() {
   const router = useRouter();
-  const { user, refreshAuth, logout } = useAuth();
-
-  const [email, setEmail] = useState(user?.email || "");
-  const [loading, setLoading] = useState(false);
-
-  const handleSaveEmail = async () => {
-    if (!email.trim()) return;
-
-    setLoading(true);
-    try {
-      const result = await apiClient.updateProfile({ email: email.trim() });
-      if (result.success) {
-        await refreshAuth();
-        Alert.alert("Success", "Email updated successfully");
-      } else {
-        Alert.alert("Error", result.error || "Failed to update email");
-      }
-    } catch (error) {
-      Alert.alert("Error", "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { user, profile, signOut } = useAuth();
+  const [deleting, setDeleting] = useState(false);
 
   const handleDeleteAccount = () => {
     Alert.alert(
       "Delete Account",
-      "Are you sure you want to delete your account? This action cannot be undone.",
+      "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.",
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => {
-            Alert.alert(
-              "Confirm Delete",
-              "All your data will be permanently deleted.",
-              [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Delete Account",
-                  style: "destructive",
-                  onPress: () => {
-                    logout();
-                  },
-                },
-              ]
-            );
-          },
+          onPress: confirmDeleteAccount,
         },
       ]
     );
   };
 
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      "Final Confirmation",
+      "This will permanently delete:\n\n- Your profile\n- All your posts\n- All your connections\n\nAre you absolutely sure?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete Forever",
+          style: "destructive",
+          onPress: executeDeleteAccount,
+        },
+      ]
+    );
+  };
+
+  const executeDeleteAccount = async () => {
+    if (!user) return;
+
+    setDeleting(true);
+    try {
+      // Delete profile (will cascade to posts, connections, etc.)
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", user.id);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // Sign out (this will also navigate to auth)
+      await signOut();
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      Alert.alert("Error", "Failed to delete account. Please try again.");
+      setDeleting(false);
+    }
+  };
+
+  const formatPhoneNumber = (phone: string | undefined) => {
+    if (!phone) return "Not set";
+    // Simple formatting: +1 (XXX) XXX-XXXX
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length === 11 && digits.startsWith("1")) {
+      return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+    }
+    return phone;
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-cream-300" edges={["top"]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
-      >
-        {/* Header */}
-        <View className="flex-row items-center px-4 py-3 border-b border-cream-400">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    <SafeAreaView className="flex-1 bg-cream" edges={["top"]}>
+      {/* Header */}
+      <View className="flex-row items-center px-4 py-3 border-b border-cream-300 bg-white">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <ArrowLeft color={colors.charcoal[400]} size={24} />
+        </TouchableOpacity>
+        <Text
+          className="flex-1 text-center text-lg text-charcoal-400 mr-6"
+          style={{ fontFamily: "Cabin_600SemiBold" }}
+        >
+          Account
+        </Text>
+      </View>
+
+      <ScrollView className="flex-1">
+        {/* Phone Number Section */}
+        <View className="mt-4 bg-white border-y border-cream-200">
+          <View className="flex-row items-center px-4 py-4">
+            <View className="w-10 h-10 rounded-full bg-forest-100 items-center justify-center">
+              <Phone color={colors.forest[500]} size={20} />
+            </View>
+            <View className="ml-3 flex-1">
+              <Text
+                className="text-sm text-charcoal-300"
+                style={{ fontFamily: "Cabin_400Regular" }}
+              >
+                Phone Number
+              </Text>
+              <Text
+                className="text-charcoal-400 mt-0.5"
+                style={{ fontFamily: "Cabin_500Medium" }}
+              >
+                {formatPhoneNumber(profile?.phone_number || user?.phone)}
+              </Text>
+            </View>
+          </View>
+          <View className="px-4 pb-3">
+            <Text
+              className="text-xs text-charcoal-300"
+              style={{ fontFamily: "Cabin_400Regular" }}
+            >
+              Your phone number is used to sign in and cannot be changed.
+            </Text>
+          </View>
+        </View>
+
+        {/* Account Info */}
+        <View className="px-4 py-3 mt-4">
+          <Text
+            className="text-xs text-charcoal-300 uppercase"
+            style={{ fontFamily: "Cabin_600SemiBold" }}
           >
-            <Ionicons name="arrow-back" size={24} color={colors.charcoal[400]} />
-          </TouchableOpacity>
-          <Text className="flex-1 text-center font-bold text-lg text-charcoal-400 mr-6">
-            Account Settings
+            Account Created
+          </Text>
+          <Text
+            className="text-charcoal-400 mt-1"
+            style={{ fontFamily: "Cabin_400Regular" }}
+          >
+            {profile?.created_at
+              ? new Date(profile.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })
+              : "Unknown"}
           </Text>
         </View>
 
-        <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
-          {/* Phone Number (Read-only) */}
-          <View className="px-4 py-4 bg-white mt-4">
-            <Text className="font-semibold text-charcoal-400 mb-2">
-              Phone Number
-            </Text>
-            <Text className="text-charcoal-300">
-              {user?.phone_number}
-            </Text>
-            <Text className="text-xs text-charcoal-300 mt-1">
-              Contact support to change your phone number
-            </Text>
-          </View>
-
-          {/* Email */}
-          <View className="px-4 py-4 bg-white mt-4">
-            <Text className="font-semibold text-charcoal-400 mb-2">
-              Email Address
-            </Text>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              placeholderTextColor={colors.charcoal[300]}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              className="bg-cream-100 border border-cream-400 rounded-lg px-4 py-3 text-charcoal-400"
-            />
-            <View className="mt-3">
-              <Button
-                onPress={handleSaveEmail}
-                disabled={loading || email === user?.email}
-                isLoading={loading}
-              >
-                Update Email
-              </Button>
-            </View>
-          </View>
-
-          {/* Change Password */}
-          <TouchableOpacity className="px-4 py-4 bg-white mt-4 flex-row items-center justify-between">
-            <View>
-              <Text className="font-semibold text-charcoal-400">
-                Change Password
-              </Text>
-              <Text className="text-xs text-charcoal-300 mt-1">
-                Update your password
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.charcoal[300]} />
-          </TouchableOpacity>
-
-          {/* Delete Account */}
-          <View className="mt-8 px-4">
-            <TouchableOpacity
-              onPress={handleDeleteAccount}
-              className="py-4 items-center"
+        {/* Delete Account Section */}
+        <View className="mt-8">
+          <View className="px-4 py-2">
+            <Text
+              className="text-xs text-charcoal-300 uppercase"
+              style={{ fontFamily: "Cabin_600SemiBold" }}
             >
-              <Text className="text-red-600">Delete Account</Text>
-            </TouchableOpacity>
-            <Text className="text-xs text-charcoal-300 text-center mt-2">
-              Permanently delete your account and all data
+              Danger Zone
             </Text>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          <TouchableOpacity
+            onPress={handleDeleteAccount}
+            disabled={deleting}
+            className="flex-row items-center px-4 py-4 bg-white border-y border-cream-200"
+          >
+            <View className="w-10 h-10 rounded-full bg-red-100 items-center justify-center">
+              {deleting ? (
+                <ActivityIndicator size="small" color="#DC2626" />
+              ) : (
+                <Trash2 color="#DC2626" size={20} />
+              )}
+            </View>
+            <View className="ml-3 flex-1">
+              <Text
+                className="text-red-600"
+                style={{ fontFamily: "Cabin_500Medium" }}
+              >
+                Delete Account
+              </Text>
+              <Text
+                className="text-xs text-charcoal-300 mt-0.5"
+                style={{ fontFamily: "Cabin_400Regular" }}
+              >
+                Permanently delete your account and all data
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
